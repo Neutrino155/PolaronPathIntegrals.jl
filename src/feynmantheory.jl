@@ -13,7 +13,7 @@ A_integrand(v, w, τ) = (w^2 * τ + (v^2 - w^2) / v * (1 - exp(-v * τ)))^(-0.5)
 A(v, w, α) = π^(-0.5) * α * v * QuadGK.quadgk(τ -> A_integrand(v, w, τ), 0, Inf)[1]
 
 # Equation 33: Lowest Free energy E = -B - A where B = -3/(4v)*(v-w)^2.
-E(v, w, α) = (3 / (4 * v)) * (v - w)^2 - A(v, w, α)
+feynman_free_energy(v, w, α) = (3 / (4 * v)) * (v - w)^2 - A(v, w, α)
 
 """
 feynman_variation(α::Float64; v = 7.0, w = 6.0)
