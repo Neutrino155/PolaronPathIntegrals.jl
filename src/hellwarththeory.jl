@@ -8,7 +8,7 @@ https://doi.org/10.1103/PhysRevB.60.299
 
 """
 
-function singlemode_variation(α, β; v = 7.2, w = 6.5, verbose::Bool = false)
+function singlemode_variation(α, β; v = 7.2, w = 6.5)
 
     initial = [v, w]
     lower = [0.0, 0.0]
@@ -26,11 +26,6 @@ function singlemode_variation(α, β; v = 7.2, w = 6.5, verbose::Bool = false)
 
     if Optim.converged(solution) == false
         print("\tWARNING: Failed to converge to v, w soln? : ", Optim.converged(solution))
-    end
-
-    if verbose
-        println()
-        show(solution)
     end
 
     v, w = Optim.minimizer(solution)

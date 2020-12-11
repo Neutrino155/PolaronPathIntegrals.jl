@@ -16,7 +16,7 @@ frohlich_α(ϵ_optic::Float64, ϵ_static::Float64, freq::Float64, m_eff::Float64
     See Equation 2.37.
 
 """
-function frohlich_α(ϵ_optic::Float64, ϵ_static::Float64, freq::Float64, m_eff::Float64)
+function frohlich_α(ϵ_optic, ϵ_static, freq, m_eff)
 
     ω = 2 * π * freq
 
