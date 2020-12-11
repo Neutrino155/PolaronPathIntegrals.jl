@@ -6,6 +6,7 @@ using Optim
 using QuadGK
 using SpecialFunctions
 using BigCombinatorics
+using Plots
 
 include("frohlich.jl")
 include("feynmantheory.jl")
@@ -13,7 +14,8 @@ include("osaka.jl")
 include("hellwarththeory.jl")
 include("mobility.jl")
 include("optical_absorption.jl")
-include("polaron.jl")
+include("make_polaron.jl")
+include("plot_polaron.jl")
 
 export frohlich_α
 export feynman_variation
@@ -25,6 +27,7 @@ export polaron_mobility_zero
 export optical_absorption
 export optical_absorption_zero
 export make_polaron
+export plot_polaron
 
 include("../src/polaronmakie/PolaronMakie.jl")
 for name in names(PolaronMakie)
@@ -42,16 +45,20 @@ const c = 2.99792458e8 # m s^{-1}
 
 struct Polaron
     α      # Frohlich alpha
+    T      # Temperature (K)
+    β      # Thermodynamic beta
     v      # Variational parameter
     w      # Variational parameter
-    β      # Thermodynamic beta
     F      # Free energy
+    Ω      # Electric field frequencies
     μ      # Mobility
     Γ      # Absorption coefficient
 end
 
 function Base.show(io::IO, x::Polaron)
-    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nv = ", round(x.v, digits = 3), "\nw = ", round(x.w, digits = 3), "\nβ = ", round(x.β, digits = 3), "\nF = ", round(x.F, digits = 3), "\nμ = ", round(Float64(x.μ), digits = 3), "\nΓ = ", round(Float64(x.Γ), digits = 3))
+    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nT = ", round.(x.T, digits = 3), " K \nβ = ", round.(x.β, digits = 3), " ħω\nv = ", round.(x.v, digits = 3), "\nw = ", round.(x.w, digits = 3), "\nF = ", round.(x.F, digits = 3), "\nΩ = ", round.(Float64.(x.Ω), digits = 3),  "\nμ = ", round.(Float64.(x.μ), digits = 3), " cm^2 / Vs\nΓ = ", round.(Float64.(x.Γ), digits = 3))
 end
+
+export Polaron
 
 end # module

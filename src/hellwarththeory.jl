@@ -11,7 +11,7 @@ https://doi.org/10.1103/PhysRevB.60.299
 function singlemode_variation(α, β; v = 7.2, w = 6.5)
 
     initial = [v, w]
-    lower = [0.0, 0.0]
+    lower = [0.001, 0.001]
     upper = [Inf, v]
 
     f(x) = osaka_free_energy(x[1], x[2], β, α)
