@@ -199,15 +199,16 @@ polaron_mobility(Ω::Float64, β::Float64, α::Float64, v::Float64, w::Float64, 
 
     Calculate the moblity μ(Ω) of the polaron at finite temperatues (equation (1) in Hellwarth 1999) for a given frequency Ω. β is the thermodynamic beta. v and w are the variational polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. N is the upper limit of a sum in ℑχ(Ω).
 """
-polaron_mobility(Ω, β, α, v, w, N = 10)
-    Ω / ℑχ(Ω, β, α, v, w, N)
+function polaron_mobility(Ω, β, α, v, w)
+    Ω / ℑχ(Ω, β, α, v, w)
 end
+
 
 """
 polaron_mobility_zero(Ω::Float64, α::Float64, v::Float64, w::Float64, N::Int)
 
     Calculate the moblity μ(Ω) of the polaron at zero-temperatures (equation (1) in Hellwarth 1999) for a given frequency Ω. v and w are the variational polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. N is the upper limit of a sum in ℑχ(Ω).
 """
-polaron_mobility(Ω, β, α, v, w, N = 10)
-    Ω / ℑχ(Ω, β, α, v, w, N)
+function polaron_mobility_zero(Ω, α, v, w)
+    1 / ℑχ_0(Ω, α, v, w)
 end

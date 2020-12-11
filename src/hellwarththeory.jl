@@ -14,7 +14,7 @@ function singlemode_variation(α, β; v = 7.2, w = 6.5, verbose::Bool = false)
     lower = [0.0, 0.0]
     upper = [Inf, v]
 
-    f(x) = F(x[1], x[2], β, α)
+    f(x) = osaka_free_energy(x[1], x[2], β, α)
 
     solution = Optim.optimize(
         Optim.OnceDifferentiable(f, initial; autodiff = :forward),
@@ -25,7 +25,7 @@ function singlemode_variation(α, β; v = 7.2, w = 6.5, verbose::Bool = false)
     )
 
     if Optim.converged(solution) == false
-        print("\tWARNING: Failed to converge to v,w soln? : ", Optim.converged(solution))
+        print("\tWARNING: Failed to converge to v, w soln? : ", Optim.converged(solution))
     end
 
     if verbose
