@@ -1,6 +1,7 @@
 # plot_polaron.jl
 
 plotly()
+Plots.PlotlyBackend()
 
 function plot_polaron(polaron)
     Ω = polaron.Ω

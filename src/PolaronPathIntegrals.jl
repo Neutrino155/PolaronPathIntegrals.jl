@@ -7,6 +7,11 @@ using QuadGK
 using SpecialFunctions
 using BigCombinatorics
 using Plots
+using ArbNumerics
+using AbstractPlotting.MakieLayout
+using AbstractPlotting
+using GLMakie
+using PlotlyBase
 
 include("frohlich.jl")
 include("feynmantheory.jl")
@@ -28,6 +33,9 @@ export optical_absorption
 export optical_absorption_zero
 export make_polaron
 export plot_polaron
+
+# Individual Functions
+export ℑχ, ℑχ_0, ℜχ_0
 
 include("../src/polaronmakie/PolaronMakie.jl")
 for name in names(PolaronMakie)
