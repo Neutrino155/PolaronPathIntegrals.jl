@@ -1,53 +1,65 @@
 # make_polaron.jl
 
-function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.001)
+# Example: MAPI: make_polaron(4.5, 24.1, 2.25e12, 0.12)
+
+function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0)
+
+    # Collect data.
     ω = 2 * π * phonon_freq
     Ω = efield_freq
     T = temp
     α = frohlich_α(ϵ_optic, ϵ_static, phonon_freq, m_eff)
-    if typeof(temp) == Float64
-        if temp == 0.0
-            β = :∞
-            v, w = feynman_variation(α)
-            F = feynman_free_energy(v, w, α)
-            if typeof(Ω) != Float64
-                μ = []
-                Γ = []
-                for i in Ω
-                    append!(μ, 100^2 * eV * polaron_mobility_zero(i, α, v, w) / (ω * m_eff * m_e))
-                    append!(Γ, optical_absorption_zero(i, α, v, w, sqrt(ϵ_optic)))
-                end
-            else
-                μ = 100^2 * eV * polaron_mobility_zero(Ω, α, v, w) / (ω * m_eff * m_e)
-                Γ = optical_absorption_zero(Ω, α, v, w, sqrt(ϵ_optic))
+
+    # Prepare empty arrays.
+    β = []
+    v = []
+    w = []
+    F = []
+    μ = []
+    Γ = []
+
+    for t in T
+        if t == 0.0
+            append!(β, Inf)
+            V, W = variation(α)
+            append!(v, V)
+            append!(w, W)
+            append!(F, free_energy(V, W, α))
+
+            μ_T = []
+            Γ_T = []
+            for f in Ω
+                f = abs(f)
+                append!(μ_T, 100^2 * eV * polaron_mobility(f, α, V, W, 1e4) / (ω * m_eff * m_e))
+                append!(Γ_T, optical_absorption(f, α, V, W, 1e4)) / (c * ϵ_0 * sqrt(ϵ_optic))
             end
-        elseif temp != 0.0
-            β = ħ * ω / (k_B * temp)
-            v, w = singlemode_variation(α, β)
-            F = osaka_free_energy(v, w, β, α)
-            if typeof(Ω) != Float64
-                μ = []
-                Γ = []
-                for i in Ω
-                    append!(μ, 100^2 * eV * polaron_mobility(i, β, α, v, w) / (ω * m_eff * m_e))
-                    append!(Γ, optical_absorption(i, β, α, v, w))
-                end
-            else
-                μ = 100^2 * eV * polaron_mobility(Ω, β, α, v, w) / (ω * m_eff * m_e)
-                Γ = optical_absorption(Ω, β, α, v, w)
+            append!(μ, [μ_T])
+            append!(Γ, [Γ_T])
+
+        elseif t > 0.0
+            b = ħ * ω / (k_B * t)
+            V, W = variation(α, b)
+            @show(V, W, t)
+            append!(β, b)
+            append!(v, V)
+            append!(w, W)
+            @show(free_energy(V, W, α, b))
+            append!(F, free_energy(V, W, α, b))
+
+            μ_T = []
+            Γ_T = []
+            for f in Ω
+                f = abs(f)
+                append!(μ_T, 100^2 * eV * polaron_mobility(f, α, V, W, b) / (ω * m_eff * m_e))
+                append!(Γ_T, optical_absorption(f, α, V, W, b))
             end
-        end
-    elseif typeof(temp) != Float64
-        β = [ħ * ω / (k_B * i) for i in temp]
-        v = [singlemode_variation(α, i)[1] for i in β]
-        w = [singlemode_variation(α, i)[2] for i in β]
-        F = [osaka_free_energy(i, j, k, α) for (i, j, k) in zip(v, w, β)]
-        μ = []
-        Γ = []
-        for (i, j, k) in zip(v, w, β)
-            append!(μ, 100^2 * eV * polaron_mobility(Ω, k, α, i, j) / (ω * m_eff * m_e))
-            append!(Γ, optical_absorption(Ω, k, α, i, j))
+            append!(μ, [μ_T])
+            append!(Γ, [Γ_T])
+
+        else
+            println("Temperature must be either zero or positive.")
         end
     end
+
     return Polaron(α, T, β, v, w, F, Ω, μ, Γ)
 end
