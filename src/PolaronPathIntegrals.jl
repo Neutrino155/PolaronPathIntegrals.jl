@@ -8,40 +8,35 @@ using SpecialFunctions
 using BigCombinatorics
 using Plots
 using ArbNumerics
-using AbstractPlotting.MakieLayout
+# using AbstractPlotting.MakieLayout
 using AbstractPlotting
 using GLMakie
 using PlotlyBase
 
-include("frohlich.jl")
-include("feynmantheory.jl")
-include("osaka.jl")
-include("hellwarththeory.jl")
+include("coupling.jl")
+include("free_energy.jl")
+include("variation.jl")
 include("mobility.jl")
 include("optical_absorption.jl")
 include("make_polaron.jl")
 include("plot_polaron.jl")
 
 export frohlich_α
-export feynman_variation
-export feynman_free_energy
-export osaka_free_energy
-export singlemode_variation
+export variation
+export free_energy
 export polaron_mobility
-export polaron_mobility_zero
 export optical_absorption
-export optical_absorption_zero
 export make_polaron
 export plot_polaron
 
 # Individual Functions
-export ℑχ, ℑχ_0, ℜχ_0
+export ℑχ, ℜχ
 
-include("../src/polaronmakie/PolaronMakie.jl")
-for name in names(PolaronMakie)
-    @eval import .PolaronMakie: $(name)
-    @eval export $(name)
-end
+# include("../src/polaronmakie/PolaronMakie.jl")
+# for name in names(PolaronMakie)
+#     @eval import .PolaronMakie: $(name)
+#     @eval export $(name)
+# end
 
 # Physical constants
 const ħ = 1.05457162825e-34; # kg m^2 s^{-1}
@@ -64,7 +59,7 @@ struct Polaron
 end
 
 function Base.show(io::IO, x::Polaron)
-    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nT = ", round.(x.T, digits = 3), " K \nβ = ", round.(x.β, digits = 3), " ħω\nv = ", round.(x.v, digits = 3), "\nw = ", round.(x.w, digits = 3), "\nF = ", round.(x.F, digits = 3), "\nΩ = ", round.(Float64.(x.Ω), digits = 3),  "\nμ = ", round.(Float64.(x.μ), digits = 3), " cm^2 / Vs\nΓ = ", round.(Float64.(x.Γ), digits = 3))
+    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nT = ", round.(x.T, digits = 3), " K \nβ = ", round.(x.β, digits = 3), " ħω\nv = ", round.(x.v, digits = 3), "\nw = ", round.(x.w, digits = 3), "\nF = ", round.(x.F, digits = 3), "\nΩ = ", round.(Float64.(x.Ω), digits = 3),  "\nμ = ", x.μ .|> y -> round.(Float64.(y), digits = 3), " cm^2 / Vs\nΓ = ", x.Γ .|> y -> round.(Float64.(y), digits = 3))
 end
 
 export Polaron

@@ -1,4 +1,4 @@
-#frohlich.jl
+# coupling.jl
 
 """
 Implementation of Frohlich's Hamiltonian and coupling parameter α applied to the Polaron model.

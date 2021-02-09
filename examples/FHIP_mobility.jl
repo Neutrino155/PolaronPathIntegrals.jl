@@ -8,13 +8,15 @@ using PolaronPathIntegrals
 using Plots
 using SpecialFunctions
 using LaTeXStrings
+using DSP
+using Images
 
 # Interactive Figures
-# plotly()
-# Plots.PlotlyBackend()
+plotly()
+Plots.PlotlyBackend()
 
 # Static Figures
-pgfplots()
+# pgfplots()
 
 function plot_figure(
     Ω_range,
@@ -35,7 +37,9 @@ function plot_figure(
     end
 
     if !zero
-        Imχs = [[PolaronPathIntegrals.ℑχ(Ω, β, α, v, w) for Ω in Ω_range] for β in β_range]
+        # Imχs = [[PolaronPathIntegrals.ℑχ(Ω, β, α, v, w) for Ω in Ω_range] for β in β_range]
+        Imχs = [imag(hilbert(vcat(repeat([Float64(PolaronPathIntegrals.ℑχ(Ω_range[1], β, α, v, w))], 2 * length(Ω_range) + 1), [Float64(PolaronPathIntegrals.ℑχ(Ω, β, α, v, w)) for Ω in Ω_range], repeat([Float64(PolaronPathIntegrals.ℑχ(Ω_range[end], β, α, v, w))], 2 * length(Ω_range) + 1))))[2 * length(Ω_range) + 2:end - 2 * length(Ω_range) - 1] for β in β_range]
+        @show(Imχs[1])
     else
         Imχs = [vcat([0.0], [PolaronPathIntegrals.ℑχ(Ω, β, α, v, w) for Ω in Ω_range]) for β in β_range]
         Ω_range = vcat([0.0], Ω_range)
@@ -142,16 +146,16 @@ setprecision(BigFloat, 64)
 Extended Plots
 """
 
-extended_figure_one = plot_figure(
-    range(3.0, stop = 9.0, length = 1000),
-    3.0,
-    2.5,
-    3.4;
-    ylog = false,
-    xtickstep = 1,
-    ytickstep = 1,
-    zero = false,
-)
+# extended_figure_one = plot_figure(
+#     range(3.0, stop = 9.0, length = 1000),
+#     3.0,
+#     2.5,
+#     3.4;
+#     ylog = false,
+#     xtickstep = 1,
+#     ytickstep = 1,
+#     zero = false,
+# )
 
 extended_figure_two = plot_figure(
     range(2.0, stop = 28.0, length = 1000),
@@ -163,25 +167,25 @@ extended_figure_two = plot_figure(
     ytickstep = 5,
     zero = false,
 )
+#
+# extended_figure_three = plot_figure(
+#     range(6.0, stop = 28.0, length = 1000),
+#     7.0,
+#     1.6,
+#     5.8;
+#     ylog = false,
+#     xtickstep = 2,
+#     ytickstep = 5,
+#     zero = false,
+# )
 
-extended_figure_three = plot_figure(
-    range(6.0, stop = 28.0, length = 1000),
-    7.0,
-    1.6,
-    5.8;
-    ylog = true,
-    xtickstep = 2,
-    ytickstep = 5,
-    zero = false,
-)
+# figpath = "C:/Users/neutr/OneDrive - Imperial College London/PhD/Code/PolaronPathIntegrals/examples/plots/"
 
-figpath = "C:/Users/neutr/OneDrive - Imperial College London/PhD/Code/PolaronPathIntegrals/examples/plots/"
-
-for i in ["pdf", "tex", "svg"]
+# for i in ["pdf", "tex", "svg"]
     # savefig(replicated_figure_one, figpath * "FHIP_replicated_fig_1.$i")
     # savefig(replicated_figure_two, figpath * "FHIP_replicated_fig_2.$i")
     # savefig(replicated_figure_three, figpath * "FHIP_replicated_fig_3.$i")
-    savefig(extended_figure_one, figpath * "FHIP_extend_fig_1_short.$i")
-    savefig(extended_figure_two, figpath * "FHIP_extend_fig_2_short.$i")
-    savefig(extended_figure_three, figpath * "FHIP_extend_fig_3_short.$i")
-end
+#     savefig(extended_figure_one, figpath * "FHIP_extend_fig_1_short.$i")
+#     savefig(extended_figure_two, figpath * "FHIP_extend_fig_2_short.$i")
+#     savefig(extended_figure_three, figpath * "FHIP_extend_fig_3_short.$i")
+# end
