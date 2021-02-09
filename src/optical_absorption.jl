@@ -1,6 +1,14 @@
 # optical_absorption.jl
 
 """
+--------------------------------------------------------------------------------
+Finite temperature implementation for ℜχ using BesselI and StruveL functions.
+--------------------------------------------------------------------------------
+
+Calculated in a similar nature to ℑχ, however compared to the resultant contour integral for ℑχ, the ℜχ version interchanges a cosine for a sine (which results in using BesselI and StruveL functions instead of just BesselK functions) and also introduces an extra integral of hyperbolic functions. This makes it trickier to evaluate than ℑχ.
+"""
+
+"""
 ℜχ(Ω::Float64, α::Float64, v::Float64, w::Float64)
 
     Calculate the real part of χ(Ω) in a zero temperature approximation (equation (16) in Devreese's et al.) for a given frequency Ω. v and w are the variational Polaron parameters that minimise the free energy, for the supplied α Frohlich coupling.
