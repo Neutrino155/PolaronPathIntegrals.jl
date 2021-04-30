@@ -25,7 +25,9 @@ Simple implementation for finite temperatures. Useful for most values of argumen
 """
 function ℜχ(Ω, β, α, v, w)
     integrand(x) = (1 - cos(Ω * x)) * ℑS(x, 0.0, v, w, β, α)
-    return QuadGK.quadgk(x -> integrand(x), BigFloat(0.0), Inf; maxevals=10^4, order = 7)[1]
+    result = QuadGK.quadgk(x -> integrand(x), 0.0, Inf; atol = 1e-3)
+    println(Ω, " ", result)
+    return result
 end
 
 """
@@ -35,237 +37,44 @@ end
 """
 function ℑχ(Ω, β, α, v, w)
     integrand(x) = sin(Ω * x) * ℑS(x, 0.0, v, w, β, α)
-    return QuadGK.quadgk(x -> integrand(x), BigFloat(0.0), Inf; maxevals=10^4, order = 7)[1]
+    result = QuadGK.quadgk(x -> integrand(x), 0.0, Inf; atol = 1e-3)
+    println(Ω, " ", result)
+    return result
 end
+
+Ω_range = 0.01:0.1:10.01
+ReX = [ℜχ(Ω, 0.4, 5, 4, 2.8) for Ω in Ω_range]
+ImX = [ℑχ(Ω, 0.4, α, v, w) for Ω in Ω_range]
+using Plots
+plotly()
+Plots.PlotlyBackend()
+p = plot(Ω_range, [i[1] for i in ReX], ribbon = [i[2] for i in ReX], label = "ℜχ", xlabel = "Ω", ylabel = "χ")
+plot!(p, Ω_range, [i[1] for i in ImX], ribbon = [i[2] for i in ImX], label = "ℑχ")
+display(p)
+
 
 # Create a complex number from the real and imaginary parts of χ(Ω).
 
-χ(Ω, β, α, v, w) = ℜχ(Ω, β, α, v, w) + 1im * ℑχ(Ω, β, α, v, w)
+function χ(Ω, β, α, v, w)
+
+    R = (v^2 - w^2) / (w^2 * v)
+    a_squared = β^2 / 4 + R * β * coth(β * v / 2)
+    b = R * β / sinh(β * v / 2)
+
+    D(x, y) = w^2 * (a_squared - β^2 / 4 - b * cos(v * x) * cosh(v * (y - β / 2)) + x^2 + y * (β - y)) / (β * v^2) + 1im * (w^2 * (b * sin(v * x) * sinh(v * (y - β / 2)) + 2 * x * (y - β / 2)) / (β * v^2))
+
+    θ(x, y) = angle(D(x, y))
+    r_squared(x, y) = abs2(D(x, y))
+
+    S(x, y) = 2 * α * (cos(3 * θ(x, y) / 2) * cos(x) * cosh(y - β / 2) - sin(3 * θ(x, y) / 2) * sin(x) * sinh(y - β / 2)) / (3 * sqrt(π) * sinh(β / 2) * r_squared(x, y)^(3 / 4)) -2im * α * (cos(3 * θ(x, y) / 2) * sin(x) * sinh(y - β / 2) + sin(3 * θ(x, y) / 2) * cos(x) * cosh(y - β / 2)) / (3 * sqrt(π) * sinh(β / 2) * r_squared(x, y)^(3 / 4))
+
+    integrand(x) = (1 - exp(1im * Ω * x)) * imag(S(x, 0.0))
+    result = QuadGK.quadgk(x -> integrand(x), 0.0, Inf; atol = 1e-3)[1]
+    println(Ω, " ", result)
+    return result
+end
 
 function Γ(Ω, β, α, v, w)
     z = 1im * (Ω - χ(Ω, β, α, v, w) / Ω)
     abs(1 / z)
-end
-
-Ω_range = range(0.01, stop = 50, length = 1000)
-Rchi = [ℜχ(i, 100, 5.0, 4.0, 2.1) for i in Ω_range]
-Ichi = [ℑχ(i, 100, 5.0, 4.0, 2.1) for i in Ω_range]
-using Plots
-p = plot(Ω_range, Rchi)
-plot!(Ω_range, Ichi)
-display(p)
-
-
-"""
-----------------------------------------------------------------------
-Low temperature implementation as β -> ∞.
-----------------------------------------------------------------------
-"""
-
-"""
-ℜχ_0(Ω::Float64, α::Float64, v::Float64, w::Float64, N::Int)
-
-    Calculate the real part of χ(Ω) in a zero temperature approximation (equation (16) in Devreese's et al.) for a given frequency Ω. v and w are the variational Polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. N is the upper limit of a sum that is analytically infinite, however most of the information is encapuslated by N < 50.
-"""
-function ℜχ_0(Ω, α, v, w, N = 10) # Large N for greater accuracy.
-    R = (v^2 - w^2) / (w^2 * v)
-    integrand(x, n) =
-        ((n + 1 / 2) * x^(n - 1 / 2) * exp(-R * x) - R * x^(n + 1 / 2) * exp(-R * x)) *
-        log(abs((1 + n * v + x)^2 / (Ω^2 - (1 + n * v + x)^2))^(1 / 2))
-    total_sum = 0.0
-    for n = 0:Int(N)
-        total_sum += -(1 / gamma(n + 3 / 2)) * QuadGK.quadgk(x -> integrand(x, n), 0, Inf)[1]
-    end
-    return total_sum
-end
-
-"""
-ℑχ_0(Ω::Float64, α::Float64, v::Float64, w::Float64, N::Int)
-
-    Calculate the imaginary part of χ(Ω) in a zero temperature approximation (equation (16) in Devreese's et al.) for a given frequency Ω. v and w are the variational Polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. N is the upper limit of a sum that is analytically infinite, however most of the information is encapuslated by N < 50.
-"""
-function ℑχ_0(Ω, α, v, w, N = 10)
-
-    R = (v^2 - w^2) / (w^2 * v)
-    coefficient = 2 / 3 * α * (v / w)^3
-
-    total_sum = 0.0
-    for n = 0:Int(N)
-        total_sum +=
-            -coefficient * sqrt(π) / (gamma(-n - 1 / 2) * gamma(n + 1)) * (-2 * R)^n /
-            BigCombinatorics.doublefactorial(2 * n + 1) *
-            abs(Ω - 1 - n * v)^(n + 1 / 2) *
-            exp(-R * abs(Ω - 1 - n * v)) *
-            (1 + sign(Ω - 1 - n * v))
-    end
-    return total_sum
-end
-
-"""
-----------------------------------------------------------------------
-Finite temperature implementation for ℑχ using BesselK functions.
-----------------------------------------------------------------------
-
-Details come from Appendix A of Devreese's et al. paper, although they take the limit of β -> ∞, whereas here we do not. Likewise, we provide proper treatment of any expansions without immediate approximatons (i.e. in Appendix A they ignore the even part of the cos^n(vx) expansion without any apparent justification).
-"""
-
-"""
-ℑχ_expansion(Ω::Float64, α::Float64, v::Float64, w::Float64, N::Int)
-
-    Calculate the imaginary part of χ(Ω) at finite temperature using an infinite expansion of BesselK functions (see Appendix A in Devreese's et al.), for a given frequency Ω. v and w are the variational Polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. N is the upper limit of a sum that is analytically infinite, however most of the information is encapuslated by N < 50.
-
-    Function can either implement the BesselK functions to FLoat64 precision using the SpecialFunctions.jl package (which eventually Overflows), or to arbitrary precision with the ArbNumerics.jl package. Change comments where appropriate. Set the precision of the ArbReal type with 'setworkingprecision(ArbReal, bits=128)'. This needs to be the same precision as BigFloat, set with 'setprecision(BigFloat, 128)'.
-"""
-
-function ℑχ_expansion(Ω, β, α, v, w, N = 10) # larger N increases accuracy.
-
-    # Set arguments to BigFloat precision. Without this the calculations break down due to large values of hyperbolic functions.
-
-    Ω = BigFloat(Ω)
-    β = BigFloat(β)
-    α = BigFloat(α)
-    v = BigFloat(v)
-    w = BigFloat(w)
-
-    # Initialise constants.
-
-    R = (v^2 - w^2) / (w^2 * v)
-    a = sqrt(β^2 / 4 + R * β * coth(β * v / 2))
-    b = R * β / sinh(β * v / 2)
-
-    # Coefficient independent of summation variables n & k.
-
-    coefficient =
-        2 * α / (3 * sqrt(π)) * (v / w)^3 * β^(3 / 2) * sinh(β * Ω / 2) / sinh(β / 2)
-
-    # Initialise total value of double summation as a BigFloat.
-
-    total_sum = BigFloat(0.0)
-
-    for n = 0:Int(N)   # Infinite summation from the Binomial expansion of (x^2 + a^2 - b * cos(v * x))^(-3/2). |b * cos(v * x) / (x^2 + a^2)| < 1 for v > 0 and β > 0.
-
-        # Coefficient that depends on n summation variable.
-
-        n_coefficient =
-            -2 * SpecialFunctions.beta(-1 / 2 - n, n + 1)^(-1) * (-1)^n * b^n * (4 * a)^(-n - 1) * sqrt(π) /
-            SpecialFunctions.gamma(n + 3 / 2)
-
-        # Summation over expansion of (cos(v * x))^n splits into sums over odd n and even n.
-
-        if isodd(n) # For odd n.
-
-            # Finite sum over k for odd n from (cos(v * x))^n expansion.
-
-            for k = -1:Int((n - 1) / 2)
-
-                # Coefficient that depends on k summation variable.
-
-                k_coefficient_inverse = ((n + 1) * SpecialFunctions.beta(n - k + 1, k + 1))
-
-                # Arguments of resultant cosines obtained from cos^n(vx) * cos(x) * cos(Ωx).
-
-                y = [
-                    (Ω + 1 + v * (n - 2 * k)),
-                    (Ω + 1 - v * (n - 2 * k)),
-                    (Ω - 1 + v * (n - 2 * k)),
-                    (Ω - 1 - v * (n - 2 * k)),
-                ]
-
-                for x in y # Iterate over cosine arguments for brevity.
-
-                    """
-                    For low-ish values of β (~ < 40) and Ω (~ < 50). Integral over cos(yx) / (x^2 + a^2)^(n + 3/2) can be identified with BesselK functions.
-                    """
-
-                    total_sum +=
-                        coefficient *
-                        n_coefficient *
-                        besselk(Int(n + 1), abs(Float64(x)) * Float64(a)) *
-                        abs(x)^(n + 1) / k_coefficient_inverse
-
-                    """
-                    For larger values of β (~ > 40) and Ω (~ > 50). This is an arbitrary precision implementation of BesselK functions by ArbNumerics.jl that is not available in the SpecialFunctions.jl package. Comment above and uncomment below for higher precision calculations.
-                    """
-
-                    # Note: May be type issues somewhere resulting in Any types and slowing down code.
-
-                    # total_sum += coefficient * n_coefficient * k_coefficient * besselk(ArbReal(n + 1), ArbReal(abs(x) * a)) * abs(x)^(n + 1)
-                end
-            end
-        end
-
-        if iseven(n) # For even n.
-
-            # Finite sum over k for even n from (cos(v * x))^n expansion.
-
-            for k = -1:Int(n / 2 - 1)
-
-                # Coefficient that depends on k summation variable.
-
-                k_coefficient_inverse = ((n + 1) * SpecialFunctions.beta(n - k + 1, k + 1))
-
-                # Arguments of resultant cosines obtained from cos^n(vx) * cos(x) * cos(Ωx).
-
-                y = [
-                    (Ω + 1 + v * (n - 2 * k)),
-                    (Ω + 1 - v * (n - 2 * k)),
-                    (Ω - 1 + v * (n - 2 * k)),
-                    (Ω - 1 - v * (n - 2 * k)),
-                ]
-
-                for x in y # Iterate over cosine arguments for brevity.
-
-                    """
-                    For low-ish values of β (~ < 40) and Ω (~ < 50). Integral over cos(yx) / (x^2 + a^2)^(n + 3/2) can be identified with BesselK functions.
-                    """
-
-                    total_sum +=
-                        coefficient *
-                        n_coefficient *
-                        besselk(Int(n + 1), abs(Float64(x)) * Float64(a)) *
-                        abs(x)^(n + 1) / k_coefficient_inverse
-
-                    """
-                    For larger values of β (~ > 40) and Ω (~ > 50). This is an arbitrary precision implementation of BesselK functions by ArbNumerics.jl that is not available in the SpecialFunctions.jl package. Comment above and uncomment below for higher precision calculations.
-                    """
-
-                    # Note: May be type issues somewhere resulting in Any types and slowing down code.
-
-                    # total_sum += coefficient * n_coefficient * k_coefficient * besselk(ArbReal(n + 1), ArbReal(abs(x) * a)) * abs(x)^(n + 1)
-                end
-
-                # Coefficient that depends on k summation variable. This term is an extra term that arises for the even part of the cos^n(vx) expansion.
-
-                k_even_coefficient_inverse = ((n + 1) * SpecialFunctions.beta(n / 2 + 1, n / 2 + 1))
-
-                # Arguments of resultant cosines obtained from just cos(x) * cos(Ωx).
-
-                y_even = [(Ω + 1), (Ω - 1)]
-
-                for x in y_even # Iterate over cosine arguments for brevity.
-
-                    """
-                    For low-ish values of β (~ < 40) and Ω (~ < 50). Integral over cos(y_even x) / (x^2 + a^2)^(n + 3/2) can be identified with BesselK functions.
-                    """
-
-                    total_sum +=
-                        coefficient *
-                        n_coefficient *
-                        besselk(Int(n + 1), abs(Float64(x)) * Float64(a)) *
-                        abs(x)^(n + 1) / k_even_coefficient_inverse
-
-                    """
-                    For larger values of β (~ > 40) and Ω (~ > 50). This is an arbitrary precision implementation of BesselK functions by ArbNumerics.jl that is not available in the SpecialFunctions.jl package. Comment above and uncomment below for higher precision calculations.
-                    """
-
-                    # Note: May be type issues somewhere resulting in Any types and slowing down code.
-
-                    # total_sum += coefficient * n_coefficient * k_even_coefficient * besselk(ArbReal(n + 1), ArbReal(abs(x) * a)) * abs(x)^(n + 1)
-                end
-            end
-        end
-    end
-
-    # Return final value obtained from double summation.
-    return total_sum
 end
