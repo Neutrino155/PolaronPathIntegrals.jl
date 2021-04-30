@@ -38,12 +38,10 @@ A(v, w, α, β) = try
     α * v / (sqrt(π) * (exp(β) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, β), 0, β / 2)[1]
 catch
     err = true
-    @show(A(v, w, α, β))
 end
 
 if err
     A(v, w, α, β) = α * v / (sqrt(π) * (exp(BigFloat(β)) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, BigFloat(β)), 0, BigFloat(β / 2))[1]
-    @show(A(v, w, α, β))
 end
 
 
@@ -55,3 +53,7 @@ C(v, w, β) = 3 / 4 * (v^2 - w^2) / v * (coth(v * β / 2) - 2 / (v * β))
 
 # Equation 62a in Hellwarth. In paragraph below Equation 22 in Osaka; has extra 1/β due to different definition of A, B & C.
 free_energy(v, w, α, β) = -(A(v, w, α, β) + B(v, w, β) + C(v, w, β))
+
+"""
+Multiple Phonon Branches
+"""

@@ -1,119 +1,88 @@
 # plot_polaron.jl
 
 # Interactive Figures
-plotly()
-Plots.PlotlyBackend()
+# plotly()
+# Plots.PlotlyBackend()
 
 # Static Figures
-# pgfplots()
+pyplot()
+default(fmt=:svg)
 
-function plot_polaron(
-    polaron,
-    plot_type,
-    xtickstep = 1,
-    ytickstep = 1,
-    ymax = 400.0,
-    ylog = false,
-)
+"""
+plot_polaron(polaron::Polaron; N::Int)
 
-    α = polaron.α
-    v_values = polaron.v
-    w_values = polaron.w
-    Ω_range = polaron.Ω
-    β_range = polaron.β
-    T_range = polaron.T
-    μ_values = polaron.μ
-    Γ_values = polaron.Γ
+    Creates the following plots of a given Polaron mutable struct:
 
-    if plot_type == "mobility_frequency"
-        x_values = Ω_range
-        y_values = μ_values
-        legend_values = T_range
-        x_label = "Ω"
-        y_label = "μ(Ω)"
-        legend_label = "T = "
-    elseif plot_type == "mobility_temperature"
-        x_values = T_range
-        y_values = reverse([[x[i] for x in μ_values] for i in 1:length(Ω_range)])
-        legend_values = reverse(Ω_range)
-        x_label = "T"
-        y_label = "μ(T)"
-        legend_label = "Ω = "
-    elseif plot_type == "absorption_frequency"
-        x_values = Ω_range
-        y_values = Γ_values
-        legend_values = T_range
-        x_label = "Ω"
-        y_label = "Γ(Ω)"
-        legend_label = "T = "
-    elseif plot_type == "absorption_temperature"
-        x_values = T_range
-        y_values = [[x[i] for x in Γ_values] for i in 1:length(Ω_range)]
-        legend_values = Ω_range
-        x_label = "T"
-        y_label = "Γ(T)"
-        legend_label = "Ω = "
+        • μ_Ω: Mobility μ(Ω) (cm^2/Vs) versus Frequency Ω/ω (multiple of phonon frequency). Includes plots at N different evenly-spaced Temperatures T (K).
+        • μ_T: Mobility μ(T) (cm^2/Vs) versus Temperature T (K). Includes plots at N different evenly-spaced Frequencies Ω/ω (multiple of phonon frequency).
+        • Γ_Ω: Optical Absorption Γ(Ω) (cm^-1) versus Frequency Ω/ω (multiple of phonon frequency). Includes plots at N different evenly-spaced Temperatures T (K).
+        • Γ_T: Optical Absorption Γ(Ω) (cm^-1) versus Temperature T (K). Includes plots at N different evenly-spaced Frequencies Ω/ω (multiple of phonon frequency).
+        • κ_T: Spring Constant κ(T)/m_e (kg/s^2) (multiple of electron masses) versus Temperature T (K).
+        • M_T: Fictitious mass M(T)/m_e (kg) (multiple of electron masses) versus Temperature T (K).
+        • vw_T: Variational Parameters v and w (s^-1) versus Temperature T (K).
+        • F_T: Free Energy (meV) versus Temperature T (K).
+        ⦿ all_plots: A final plot that includes all the above as different subplots.
+
+    polaron is a Polaron Mutable Stuct type created from make_polaron(). N is an Integer that specifies how many different temperatures or frequencies to plots on the Mobility and Optical Absorption plots.
+
+    returns plots: all_plots, μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T
+"""
+
+function plot_polaron(polaron; N = 6)
+
+    # Extract polaron data.
+    α = polaron.α # Alpha parameter
+    v = polaron.v # v variational parameter
+    w = polaron.w # w variational parameter
+    F = polaron.F # Free energy
+    κ = polaron.κ # Spring constant
+    M = polaron.M # Fictitious mass
+    Ω = polaron.Ω # Electric field frequencies
+    β = polaron.β # Reduced thermodynamic betas
+    T = polaron.T # Temperatures
+    μ = polaron.μ # Mobilities
+    Γ = polaron.Γ # Optical absorptions
+
+    # Plot Mobility versus Frequency for N different Temperatures.
+    μ_Ω = Plots.plot(Ω, μ[1:Int(floor(length(T)/(N - 1))):end], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N - 1))):end]...), title = "Mobility \$\\mu(\\Omega)\$", ylim = (0, maximum(μ)[end] * 1.1), xlabel = "\$\\Omega\$ / \$\\omega\$", ylabel = "\$\\mu(\\Omega)\$ \$(cm^2/Vs)\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Mobility versus Temperature for N different Frequencies.
+    μ_T = Plots.plot(T, vcat.(μ...)[1:Int(floor(length(Ω)/(N - 1))):end], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N - 1))):end]...), title = "Mobility \$\\mu(T)\$", ylim = (0, maximum(μ)[end] * 1.1),  xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\mu(T)\$ \$(cm^2/Vs)\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Asbsorption versus Frequency for N different Temperatures.
+    Γ_Ω = Plots.plot(Ω, Γ[1:Int(floor(length(T)/(N - 1))):end], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N - 1))):end]...), title = "Optical Absorption \$\\Gamma(\\Omega)\$", ylim = (0, sort(maximum(vcat.(Γ...)))[end - 1] * 1.1),  xlabel = "\$\\Omega\$ / \$\\omega\$", ylabel = "\$\\Gamma(\\Omega)\$ \$(cm^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Absorption versus Temperature for N different Frequencies.
+    Γ_T = Plots.plot(T, vcat.(Γ...)[1:Int(floor(length(Ω)/(N - 1))):end], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N - 1))):end]...), title = "Optical Absorption \$\\Gamma(T)\$", ylim = (0, sort(maximum(vcat.(Γ...)))[end - 1] * 1.1),  xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\Gamma(T)\$ \$(cm^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Spring Constant versus Temperature.
+    κ_T = Plots.plot(T, κ, title = "Spring Constant \$\\kappa(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\kappa(T)\$ / \$m_e\$ \$(kg/s^2)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Fictitious Mass versus Temperature.
+    M_T = Plots.plot(T, M, title = "Fictitious Mass \$M(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$M(T)\$ / \$m_e\$ \$(kg)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Variational Parameters v & w versus Temperature.
+    vw_T = Plots.plot(T, [v, w], label = ["v" "w"], title = "Variational Parameters \$v(T)\$ & \$w(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$v\$ & \$w\$ \$(s^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Plot Free Energy versus Temperature.
+    F_T = Plots.plot(T, F, title = "Free Energy \$F(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$F(T)\$ \$(meV)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+
+    # Combine all plots above as subplots for combined view.
+    all_plots = Plots.plot(μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T, layout = (2, 4), size = (1800, 900), linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 8, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 10, thickness_scaling = 1.2)
+
+    # Return all plots.
+    all_plots, μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T
+end
+
+"""
+save_polaron_plots(plots::Array{Plot}, path::String, ext::String)
+
+    Saves all the plots created from plot_polaron() at the specified path with the specified extension.
+"""
+
+function save_polaron_plots(plots, path, ext = "svg")
+
+    for plot in plots
+        savefig(plot, path * "$(plot)." * ext)
     end
-
-    if ylog
-        plot = Plots.plot(
-            x_values,
-            y_values[1],
-            xticks = round(x_values[1], digits = 1):xtickstep:round(x_values[end], digits = 1),
-            yaxis = :log,
-            xlabel = x_label,
-            ylabel = y_label,
-            label = legend_label * "$(round(legend_values[1], digits = 3))",
-            legend = :bottomright,
-            size = (1800, 1200),
-            linewidth = 2,
-            xtickfontsize = 18,
-            ytickfontsize = 18,
-            xguidefontsize = 20,
-            yguidefontsize = 20,
-            legendfontsize = 18,
-            thickness_scaling = 1.2,
-        )
-        annotate!(plot,  Plots.xlims(plot)[1] + 0.8 * (Plots.xlims(plot)[2] - Plots.xlims(plot)[1]), 0.5e-2, ("\$\\alpha\$ = $α", :black, :right, 20))
-        for i = 2:length(legend_values)
-            Plots.plot!(
-                plot,
-                x_values,
-                y_values[i],
-                label = legend_label * "$(round(legend_values[i], digits = 3))",
-                linewidth = 2,
-            )
-        end
-
-    else
-        plot = Plots.plot(
-            x_values,
-            y_values[1],
-            xticks = round(x_values[1], digits = 1):xtickstep:round(x_values[end], digits = 1),
-            ylims = (0.0, ymax),
-            xlabel = x_label,
-            ylabel = y_label,
-            label = legend_label * "$(round(legend_values[1], digits = 3))",
-            legend = :bottomright,
-            size = (1800, 1200),
-            linewidth = 2,
-            xtickfontsize = 18,
-            ytickfontsize = 18,
-            xguidefontsize = 20,
-            yguidefontsize = 20,
-            legendfontsize = 18,
-            thickness_scaling = 1.2,
-        )
-        annotate!(plot, Plots.xlims(plot)[1] + 0.4 * (Plots.xlims(plot)[2] - Plots.xlims(plot)[1]), Plots.ylims(plot)[1] + 0.95 * (Plots.ylims(plot)[2] - Plots.ylims(plot)[1]), ("\$\\alpha\$ = $(round(α, digits = 3))", :black, :right, 20))
-        for i = 2:Int(length(legend_values))
-            Plots.plot!(
-                plot,
-                x_values,
-                y_values[i],
-                label = legend_label * "$(round(legend_values[i], digits = 3))",
-                linewidth = 2,
-            )
-        end
-    end
-    return plot
 end
