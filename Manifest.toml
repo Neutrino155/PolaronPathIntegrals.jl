@@ -24,18 +24,6 @@ git-tree-sha1 = "e81c509d2c8e49592413bfb0bb3b08150056c79d"
 uuid = "27a7e980-b3e6-11e9-2bcd-0b925532e340"
 version = "0.4.1"
 
-[[ArbNumerics]]
-deps = ["Arb_jll", "BinaryProvider", "FLINT_jll", "GMP_jll", "GenericSVD", "GenericSchur", "Libdl", "LinearAlgebra", "MPFR_jll", "Printf", "Random", "Readables", "SpecialFunctions"]
-git-tree-sha1 = "5ddba1fb7a34d15222b3b8c734c145ef57a7b0e9"
-uuid = "7e558dbc-694d-5a72-987c-6f4ebed21442"
-version = "1.2.4"
-
-[[Arb_jll]]
-deps = ["Artifacts", "FLINT_jll", "GMP_jll", "JLLWrappers", "Libdl", "MPFR_jll", "Pkg"]
-git-tree-sha1 = "2474be8e6c694c8977cca9f9a3ad075531ddb486"
-uuid = "d9960996-1013-53c9-9ba4-74a4155039c3"
-version = "200.1900.0+0"
-
 [[ArrayInterface]]
 deps = ["LinearAlgebra", "Requires", "SparseArrays"]
 git-tree-sha1 = "a0c202d58f0f99156bd77972fe75ae8498fd9f4b"
@@ -56,18 +44,6 @@ version = "1.0.0"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
-
-[[BigCombinatorics]]
-deps = ["Combinatorics"]
-git-tree-sha1 = "e0dd6cb1d78113add4b852821ad3e0eb688618bf"
-uuid = "7b33fef7-ef1d-5d54-bb67-cf96d4c8a166"
-version = "0.2.0"
-
-[[BinaryProvider]]
-deps = ["Libdl", "Logging", "SHA"]
-git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
-uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.10"
 
 [[Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -115,11 +91,6 @@ deps = ["ColorTypes", "FixedPointNumbers", "InteractiveUtils", "Reexport"]
 git-tree-sha1 = "ac5f2213e56ed8a34a3dd2f681f4df1166b34929"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.6"
-
-[[Combinatorics]]
-git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
-uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-version = "1.0.2"
 
 [[CommonSubexpressions]]
 deps = ["MacroTools", "Test"]
@@ -232,12 +203,6 @@ git-tree-sha1 = "5a0d4b6a22a34d17d53543bd124f4b08ed78e8b0"
 uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
 version = "3.3.9+7"
 
-[[FLINT_jll]]
-deps = ["Artifacts", "GMP_jll", "JLLWrappers", "Libdl", "MPFR_jll", "Pkg"]
-git-tree-sha1 = "648891e837baafba25dd81a129fbef9b1f191d47"
-uuid = "e134572f-a0d5-539d-bddf-3cad8db41a82"
-version = "200.700.0+0"
-
 [[FileIO]]
 deps = ["Pkg"]
 git-tree-sha1 = "fee8955b9dfa7bec67117ef48085fb2b559b9c22"
@@ -316,29 +281,11 @@ git-tree-sha1 = "d3d348b0442f0763011d5328939aef99720971d0"
 uuid = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 version = "0.1.25"
 
-[[GMP_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "15abc5f976569a1c9d651aff02f7222ef305eb2a"
-uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
-version = "6.1.2+6"
-
 [[GR]]
 deps = ["Base64", "DelimitedFiles", "HTTP", "JSON", "LinearAlgebra", "Printf", "Random", "Serialization", "Sockets", "Test", "UUIDs"]
 git-tree-sha1 = "cd0f34bd097d4d5eb6bbe01778cf8a7ed35f29d9"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 version = "0.52.0"
-
-[[GenericSVD]]
-deps = ["LinearAlgebra"]
-git-tree-sha1 = "62909c3eda8a25b5673a367d1ad2392ebb265211"
-uuid = "01680d73-4ee2-5a08-a1aa-533608c188bb"
-version = "0.3.0"
-
-[[GenericSchur]]
-deps = ["LinearAlgebra", "Printf"]
-git-tree-sha1 = "43b4dc5648028be2c6e96201aa3653903bd1af21"
-uuid = "c145ed77-6b09-5dd9-b285-bf645a82121e"
-version = "0.4.0"
 
 [[GeometryBasics]]
 deps = ["EarCut_jll", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
@@ -525,12 +472,6 @@ deps = ["IntelOpenMP_jll", "Libdl", "Pkg"]
 git-tree-sha1 = "eb540ede3aabb8284cb482aa41d00d6ca850b1f8"
 uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2020.2.254+0"
-
-[[MPFR_jll]]
-deps = ["Artifacts", "GMP_jll", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "36fd989c8d239b33a86f5f721f6649dbe237e678"
-uuid = "3a97d323-0669-5f0c-9066-3539efd106a3"
-version = "4.0.2+4"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -757,12 +698,6 @@ uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 git-tree-sha1 = "37d210f612d70f3f7d57d488cb3b6eff56ad4e41"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
 version = "0.4.0"
-
-[[Readables]]
-deps = ["Test"]
-git-tree-sha1 = "9dde360267e7f5e0c292bbe14b7d034f7e617031"
-uuid = "0d4725de-cd7c-5e44-8a85-a48caeef9fa5"
-version = "0.3.3"
 
 [[RecipesBase]]
 git-tree-sha1 = "b3fb709f3c97bfc6e948be68beeecb55a0b340ae"

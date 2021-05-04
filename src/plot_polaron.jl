@@ -86,3 +86,25 @@ function save_polaron_plots(plots, path, ext = "svg")
         savefig(plot, path * "$(plot)." * ext)
     end
 end
+
+# function plot_polaron_interactive(ϵ_optic, ϵ_static, phonon_freq, m_eff)
+#
+#     p = (:ϵ_∞, :ϵ_0, :ω, :m)
+#     i = (4.5, 24.1, 2.25, 0.12)
+#     pl = ((0.1, 10.0), (0.1, 10.0), (0.1, 10.0), (0.1, 1.0))
+#     al = ((0, 300), (0, 10), (0, 1000))
+#     a = Dict(
+#         "ℜ_title" => "Mobility",
+#         "ℜ_x" => "μ(T)",
+#         "ℜ_y" => "μ(Ω)",
+#         "ℜ_z" => "μ(T, Ω)",
+#         "ℑ_title" => "Absorption",
+#         "ℑ_x" => "Γ(T)",
+#         "ℑ_y" => "Γ(Ω)",
+#         "ℑ_z" => "Γ(T, Ω)",
+#     )
+#
+#     polaron(T, Ω, ϵ_optic, ϵ_static, phonon_freq, m_eff) = make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = T, efield_freq = Ω)
+#
+#     vf = viewfunction(polaron.μ, polaron.Γ, p, i, pl, a, axis_limits = al, len = 1000)
+# end

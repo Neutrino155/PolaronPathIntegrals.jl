@@ -7,7 +7,7 @@ variation(α::Float64; v = 7.0, w = 6.0)
     This version uses the original athermal action (Feynman 1955).
     Returns v, w.
 """
-function variation(α; v = 5.0, w = 4.0)
+function variation(α; v = 0.0, w = 0.0)
 
     # Intial guess for v and w.
     if v == 0.0 || w == 0.0 # Default values to start with. Generates a random float between 1.0 and 11.0
@@ -29,7 +29,7 @@ function variation(α; v = 5.0, w = 4.0)
         lower,
         upper,
         initial,
-        Fminbox(LBFGS()),
+        Fminbox(BFGS()),
     )
 
     # Get v and w values that minimise the free energy.
@@ -43,7 +43,7 @@ function variation(α; v = 5.0, w = 4.0)
             lower,
             upper,
             initial,
-            Fminbox(LBFGS()),
+            Fminbox(BFGS()),
         )
         v, w = Optim.minimizer(solution)
     end
@@ -59,7 +59,7 @@ variation(α::Float64, β::Float64; v = 3.0, w = 2.0)
     This version uses temperature dependent action (Osaka 1959).
     Returns v, w.
 """
-function variation(α, β, v = 3.0, w = 2.0)
+function variation(α, β; v = 0.0, w = 0.0)
 
     # Intial guess for v and w.
     if v == 0.0 || w == 0.0 # Default values to start with. Generates a random float between 1.0 and 11.0
@@ -81,7 +81,7 @@ function variation(α, β, v = 3.0, w = 2.0)
         lower,
         upper,
         initial,
-        Fminbox(LBFGS()),
+        Fminbox(BFGS()),
     )
 
     # Get v and w values that minimise the free energy.
@@ -95,7 +95,7 @@ function variation(α, β, v = 3.0, w = 2.0)
             lower,
             upper,
             initial,
-            Fminbox(LBFGS()),
+            Fminbox(BFGS()),
         )
         v, w = Optim.minimizer(solution)
     end
