@@ -9,6 +9,7 @@ using Plots
 using AbstractPlotting
 using GLMakie
 using PlotlyBase
+using PyPlot
 
 include("coupling.jl")
 include("free_energy.jl")
