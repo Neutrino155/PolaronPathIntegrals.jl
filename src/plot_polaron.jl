@@ -5,8 +5,8 @@
 # Plots.PlotlyBackend()
 
 # Static Figures
-pyplot()
-default(fmt=:svg)
+# pyplot()
+# default(fmt=:svg)
 
 """
 plot_polaron(polaron::Polaron; N::Int)
