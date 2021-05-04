@@ -26,15 +26,17 @@ export polaron_mobility
 export optical_absorption
 export make_polaron
 export plot_polaron
+export save_polaron_plots
+export plot_polaron_interactive
 
 # Individual Functions
 # export χ
 
-# include("../src/polaronmakie/PolaronMakie.jl")
-# for name in names(PolaronMakie)
-#     @eval import .PolaronMakie: $(name)
-#     @eval export $(name)
-# end
+include("../src/polaronmakie/PolaronMakie.jl")
+for name in names(PolaronMakie)
+    @eval import .PolaronMakie: $(name)
+    @eval export $(name)
+end
 
 # Physical constants
 const ħ = 1.05457162825e-34; # Reduced Planck's constant (kg m^2 s^{-1})

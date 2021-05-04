@@ -2,7 +2,7 @@ module PolaronMakie
 
 export viewfunction
 
-using AbstractPlotting.MakieLayout
+# using AbstractPlotting.MakieLayout
 using AbstractPlotting
 using GLMakie
 

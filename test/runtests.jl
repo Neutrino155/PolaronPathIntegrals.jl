@@ -1,12 +1,9 @@
-using Tests
 
-using Optim
-using QuadGK
-using SpecialFunctions
-using BigCombinatorics
-using Plots
-using ArbNumerics
-using AbstractPlotting.MakieLayout
-using AbstractPlotting
-using GLMakie
-using PlotlyBase
+using PolaronPathIntegrals
+using Test
+
+@testset "PolaronPathIntegrals" begin
+    include("test_coupling.jl")
+    include("test_free_energy.jl")
+    include("test_variation.jl")
+end
