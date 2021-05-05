@@ -5,10 +5,8 @@ module PolaronPathIntegrals
 using Optim
 using QuadGK
 using Plots
-# using AbstractPlotting.MakieLayout
 using AbstractPlotting
 using GLMakie
-using PlotlyBase
 using PyPlot
 
 include("coupling.jl")
