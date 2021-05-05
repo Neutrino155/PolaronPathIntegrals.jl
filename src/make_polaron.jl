@@ -2,7 +2,7 @@
 
 # Example: MAPI: make_polaron(4.5, 24.1, 2.25e12, 0.12)
 
-function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0)
+function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0, verbose = true)
 
     # Collect data.
     ω = 2 * π * phonon_freq
@@ -22,16 +22,20 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
     # Initialise variation parameters.
     v_t, w_t = 0.0, 0.0
-    print("\n")
+    if verbose
+        print("\n")
+    end
 
     for t in T # Iterate over temperatures.
-        print("\e[2K", "Working on temperature: $(t) K / $(temp[end]) K.\n")
+        if verbose
+            print("\e[2K", "Working on temperature: $(t) K / $(temp[end]) K.\n")
+        end
 
         if t == 0.0 # If T = 0
             append!(β, Inf)  # set β = Inf
 
             # Evaluate variational parameters.
-            v_t, w_t = variation(α)
+            v_t, w_t = variation(α; v = v_t, w = w_t)
             append!(v, v_t)
             append!(w, w_t)
 
@@ -46,9 +50,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             append!(F, F_t)
 
             # Broadcast data.
-            println("\e[2K", "α: ", round(α, digits = 3), " | β: ", Inf, " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
-            println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
-            println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3), " meV")
+            if verbose
+                println("\e[2K", "α: ", round(α, digits = 3), " | β: ", Inf, " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
+                println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
+                println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3), " meV")
+            end
 
             # Prepare empty arrays for different frequencies.
             μ_t = [] # Mobilities
@@ -67,9 +73,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
-                    println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                    println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                    println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    if verbose
+                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
+                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    end
 
                 elseif f >= 1.0 # If Ω ≥ 1 at T = 0
 
@@ -82,9 +90,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
-                    println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                    println("\e[2K", "AC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                    println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    if verbose
+                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
+                        println("\e[2K", "AC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    end
                 end
 
                 print("\033[F"^3) # Move cursor back
@@ -93,7 +103,9 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             # Add freq-dependent mobilities and absorptions for T = 0.
             append!(μ, [μ_t])
             append!(Γ, [Γ_t])
-            print("\033[F"^4) # Move cursor back
+            if verbose
+                print("\033[F"^4) # Move cursor back
+            end
 
         elseif t > 0.0 # If T > 0
 
@@ -102,7 +114,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             append!(β, β_t)
 
             # Evaluate variational parameters.
-            v_t, w_t = variation(α, β_t, v_t, w_t)
+            v_t, w_t = variation(α, β_t; v = v_t, w = w_t)
             append!(v, v_t)
             append!(w, w_t)
 
@@ -117,9 +129,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             append!(F, F_t)
 
             # Broadcast data.
-            println("\e[2K", "α: ", round(α, digits = 3), " | β: ", round(β_t, digits = 3), " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
-            println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
-            println("\e[2K", "Free Energy: ", round(F_t, digits = 3), " meV")
+            if verbose
+                println("\e[2K", "α: ", round(α, digits = 3), " | β: ", round(β_t, digits = 3), " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
+                println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
+                println("\e[2K", "Free Energy: ", round(F_t, digits = 3), " meV")
+            end
 
             # Prepare empty arrays for different frequencies.
             μ_t = [] # Mobilities
@@ -138,10 +152,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
-                    println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                    println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                    println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
-
+                    if verbose
+                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
+                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    end
 
                 elseif f > 0.0 # If Ω > 0 at T > 0
 
@@ -154,25 +169,33 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
-                    println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                    println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                    println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    if verbose
+                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
+                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                    end
                 end
 
-                print("\033[F"^3) # Move cursor back
+                if verbose
+                    print("\033[F"^3) # Move cursor back
+                end
             end
 
             # Add freq-dependent mobilities and absorptions for T > 0.
             append!(μ, [μ_t])
             append!(Γ, [Γ_t])
-            print("\033[F"^4) # Move cursor back
+            if verbose
+                print("\033[F"^4) # Move cursor back
+            end
 
         else # Negative temperatures are unphysical!
             println("Temperature must be either zero or positive.")
         end
     end
 
-    print("\n"^7) # Clear prints
+    if verbose
+        print("\n"^7) # Clear prints
+    end
 
     # Return Polaron mutable struct with evaluated data.
     return Polaron(α, T, β, v, w, κ, M, F, Ω, μ, Γ)
