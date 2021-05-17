@@ -88,7 +88,7 @@ end
 
 function plot_polaron_interactive(ϵ_optic, ϵ_static, phonon_freq, m_eff; t = 100:15:400, f = 0:1:20)
 
-    fig = GLMakie.Figure(resolution = (1920, 1080), backgroundcolor = RGBf0(0.7, 0.7, 0.7))
+    fig = GLMakie.Figure(resolution = (1920, 1080), backgroundcolor = RGBf0(0.9, 0.9, 0.9))
 
     energy_axis = fig[1, 3] = Axis(fig, xlabel = "T [K]", ylabel = "F(T) [meV]", title = "Free Energy")
     vary_axis = fig[2, 3] = Axis(fig, xlabel = "T [K]", ylabel = "v/w(T) [Hz]", title = "Variational Parameters")
@@ -102,7 +102,7 @@ function plot_polaron_interactive(ϵ_optic, ϵ_static, phonon_freq, m_eff; t = 1
     lsgrid = labelslidergrid!(
         fig,
         ["ϵ_0", "ϵ_∞", "m", "ω"],
-        [1:0.01:100, 1:0.01:100, 0.1:0.01:1, 0.1:0.01:10],
+        [1:0.01:100, 1:0.01:100, 0.1:0.01:1, 0.01:0.01:100],
         formats = [x -> "$(round(x, digits = 3)) $s" for s in ["F/m", "F/m", "m_e", "THz"]],
         width = 1000
     )

@@ -32,3 +32,24 @@ function χ(Ω, α, v, w)
         QuadGK.quadgk(x -> integrand(x), 0.0, Inf)[1]
     end
 end
+
+"""
+function χ(Ω, β, α, v, w)
+
+    R = (v^2 - w^2) / (w^2 * v)
+    a_squared = β^2 / 4 + R * β * coth(β * v / 2)
+    b = R * β / sinh(β * v / 2)
+
+    D(x, y) = w^2 * (a_squared - β^2 / 4 - b * cos(v * x) * cosh(v * (y - β / 2)) + x^2 + y * (β - y)) / (β * v^2) + 1im * (w^2 * (b * sin(v * x) * sinh(v * (y - β / 2)) + 2 * x * (y - β / 2)) / (β * v^2))
+
+    θ(x, y) = angle(D(x, y))
+    r_squared(x, y) = abs2(D(x, y))
+
+    S(x, y) = 2 * α * (cos(3 * θ(x, y) / 2) * cos(x) * cosh(y - β / 2) - sin(3 * θ(x, y) / 2) * sin(x) * sinh(y - β / 2)) / (3 * sqrt(π) * sinh(β / 2) * r_squared(x, y)^(3 / 4)) -2im * α * (cos(3 * θ(x, y) / 2) * sin(x) * sinh(y - β / 2) + sin(3 * θ(x, y) / 2) * cos(x) * cosh(y - β / 2)) / (3 * sqrt(π) * sinh(β / 2) * r_squared(x, y)^(3 / 4))
+
+    integrand(x) = (1 - exp(-1im * Ω * x)) * imag(S(x, 0.0))
+    result = QuadGK.quadgk(x -> integrand(x), 0.0, Inf; atol = 1e-3)[1]
+    # println(Ω, " ", result)
+    return result
+end
+"""

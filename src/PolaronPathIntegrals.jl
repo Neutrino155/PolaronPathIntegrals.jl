@@ -30,7 +30,6 @@ export plot_polaron_interactive
 
 # Individual Functions
 # export χ
-
 include("../src/polaronmakie/PolaronMakie.jl")
 for name in names(PolaronMakie)
     @eval import .PolaronMakie: $(name)
@@ -44,6 +43,7 @@ const m_e = 9.10938188e-31; # Electron Mass (kg)
 const k_B = 1.3806504e-23; # Boltzmann's constant (kg m^2 K^{-1} s^2)
 const ϵ_0 = 8.854e-12 # Dielectric constant (C^2 N^{-1} m^{-2})
 const c = 2.99792458e8 # Speed of light (m s^{-1})
+const amu = 1.66053906660e-27 # Atomic Mass Unit (kg)
 
 struct Polaron
     α      # Frohlich alpha (unitless)
