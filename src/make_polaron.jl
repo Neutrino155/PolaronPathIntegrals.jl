@@ -2,13 +2,17 @@
 
 # Example: MAPI: make_polaron(4.5, 24.1, 2.25e12, 0.12)
 
-function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0, verbose = true)
+function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0, coupling = 0.0, verbose = true)
 
     # Collect data.
     ω = 2 * π * phonon_freq
     Ω = efield_freq
     T = temp
-    α = frohlich_α(ϵ_optic, ϵ_static, phonon_freq, m_eff)
+    if coupling == 0.0
+        α = frohlich_α(ϵ_optic, ϵ_static, phonon_freq, m_eff)
+    elseif coupling > 0.0
+        α = coupling
+    end
 
     # Prepare empty arrays for different temperatures.
     β = [] # Reduced thermodynamic beta (unitless)
@@ -62,14 +66,14 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
             for f in Ω # Iterate over frequencies
 
-                if f < 1.0 # If Ω < 1 at T = 0
+                if f == 0.0 # If Ω = 0 at T = 0
 
                     # Evaluate AC mobilities. NB: Ω = 0 is DC mobility.
-                    μ_f = Inf # Infinite for Ω < 1 at T = 0
+                    μ_f = polaron_mobility_dc(1e3, α, v_t, w_t)
                     append!(μ_t, μ_f)
 
                     # Evaluate frequency-dependent optical absorptions.
-                    Γ_f = 0.0 # Zero for Ω < 1 at T = 0
+                    Γ_f = optical_absorption_dc(1e3, α, v_t, w_t)
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
@@ -79,14 +83,14 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                         println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
                     end
 
-                elseif f >= 1.0 # If Ω ≥ 1 at T = 0
+                elseif f > 0.0 # If Ω > 0 at T = 0
 
-                    # Evaluate AC mobilities. NB: β = 1000 for T ≈ 0.
-                    μ_f = 100^2 * eV * polaron_mobility(f, 1e3, α, v_t, w_t) / (ω * m_eff * m_e)
+                    # Evaluate AC mobilities.
+                    μ_f = 100^2 * eV * polaron_mobility_ac(f, α, v_t, w_t) / (ω * m_eff * m_e)
                     append!(μ_t, μ_f)
 
-                    # Evaluate optical absorptions. NB: β = 1000 for T ≈ 0. T = 0 unstable.
-                    Γ_f = optical_absorption(f, 1e3, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
+                    # Evaluate optical absorptions.
+                    Γ_f = optical_absorption_ac(f, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
@@ -143,12 +147,12 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
                 if f == 0.0 # If Ω = 0 at T > 0
 
-                    # Evaluate DC mobility. NB: Ω = 0.001 ≈ 0. Ω = 0 unstable.
-                    μ_f = 100^2 * eV * polaron_mobility(1e-3, β_t, α, v_t, w_t) / (ω * m_eff * m_e)
+                    # Evaluate DC mobility.
+                    μ_f = 100^2 * eV * polaron_mobility_dc(β_t, α, v_t, w_t) / (ω * m_eff * m_e)
                     append!(μ_t, μ_f)
 
-                    # Evaluate DC optical absorption. NB: Ω = 0.001 ≈ 0. Ω = 0 unstable.
-                    Γ_f = optical_absorption(1e-3, β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
+                    # Evaluate DC optical absorption. 
+                    Γ_f = optical_absorption_dc(β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
@@ -161,11 +165,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 elseif f > 0.0 # If Ω > 0 at T > 0
 
                     # Evaluate AC mobilities.
-                    μ_f = 100^2 * eV * polaron_mobility(f, β_t, α, v_t, w_t) / (ω * m_eff * m_e)
+                    μ_f = 100^2 * eV * polaron_mobility_ac(f, β_t, α, v_t, w_t) / (ω * m_eff * m_e)
                     append!(μ_t, μ_f)
 
                     # Evaluate optical absorptions.
-                    Γ_f = optical_absorption(f, β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
+                    Γ_f = optical_absorption_ac(f, β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
                     append!(Γ_t, Γ_f)
 
                     # Broadcast data.
