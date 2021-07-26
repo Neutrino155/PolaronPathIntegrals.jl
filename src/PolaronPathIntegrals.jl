@@ -8,6 +8,12 @@ using Plots
 using AbstractPlotting
 using GLMakie
 using PyPlot
+using DataFrames
+using CSV
+using Statistics
+using LinearAlgebra
+using LineSearches
+using ColorSchemes
 
 include("coupling.jl")
 include("free_energy.jl")
@@ -18,12 +24,14 @@ include("optical_absorption.jl")
 include("make_polaron.jl")
 include("plot_polaron.jl")
 
-export frohlich_α
-export variation
-export free_energy
+export frohlich_α, ϵ_ionic_mode, ϵ_total, effective_freqs, frohlich_α_ν
+export variation, multi_variation
+export free_energy, multi_free_energy
 export polaron_mobility
-export optical_absorption
+export optical_absorption, complex_conductivity, complex_impedence
 export make_polaron
+export save_polaron
+export load_polaron
 export plot_polaron
 export save_polaron_plots
 export plot_polaron_interactive
@@ -55,14 +63,14 @@ struct Polaron
     M      # Fictitious particle (multiples of m_e) (kg)
     F      # Free energy (meV)
     Ω      # Electric field frequencies (multiples of phonon frequency ω) (s^-1)
-    μ      # Mobility (cm^2 / Vs)
-    Γ      # Absorption coefficient (cm^-1)
+    Z      # Complex impedence (cm^2 / Vs)
+    σ      # Complex conductivity (cm^-1)
 end
 
 # Broadcast Polaron data.
 function Base.show(io::IO, x::Polaron)
     flush(stdout)
-    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nT = ", round.(x.T, digits = 3), " K \nβ = ", round.(x.β, digits = 3), "\nv = ", round.(x.v, digits = 3), " s^-1\nw = ", round.(x.w, digits = 3), " s^-1\nκ = ", round.(x.κ, digits = 3), " kg/s^2\nM = ", round.(x.M, digits = 3), " kg\nF = ", round.(x.F, digits = 3), " meV\nΩ = ", round.(Float64.(x.Ω), digits = 3),  " s^-1\nμ = ", x.μ .|> y -> round.(Float64.(y), digits = 3), " cm^2/Vs\nΓ = ", x.Γ .|> y -> round.(Float64.(y), digits = 3), " cm^-1")
+    print(io, "---------------------- \n Polaron Information: \n----------------------\n", "α = ", round(x.α, digits = 3), "\nT = ", round.(x.T, digits = 3), " K \nβ = ", round.(x.β, digits = 3), "\nv = ", round.(x.v, digits = 3), " s^-1\nw = ", round.(x.w, digits = 3), " s^-1\nκ = ", round.(x.κ, digits = 3), " kg/s^2\nM = ", round.(x.M, digits = 3), " kg\nF = ", round.(x.F, digits = 3), " meV\nΩ = ", round.(Float64.(x.Ω), digits = 3),  " s^-1\nZ = ", x.Z .|> y -> round.(ComplexF64.(y), digits = 3), " cm^2/Vs\nσ = ", x.σ .|> y -> round.(ComplexF64.(y), digits = 3), " cm^-1")
 end
 
 export Polaron

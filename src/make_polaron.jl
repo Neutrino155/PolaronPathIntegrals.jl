@@ -2,27 +2,24 @@
 
 # Example: MAPI: make_polaron(4.5, 24.1, 2.25e12, 0.12)
 
-function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0, coupling = 0.0, verbose = true)
+function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efield_freq = 0.0, verbose = true)
 
     # Collect data.
-    ω = 2 * π * phonon_freq
     Ω = efield_freq
     T = temp
-    if coupling == 0.0
-        α = frohlich_α(ϵ_optic, ϵ_static, phonon_freq, m_eff)
-    elseif coupling > 0.0
-        α = coupling
-    end
+    
+    ω = 2π * phonon_freq
+    α = frohlich_α(ϵ_optic, ϵ_static, phonon_freq, m_eff)
 
     # Prepare empty arrays for different temperatures.
-    β = [] # Reduced thermodynamic beta (unitless)
-    v = [] # Variational parameter v (1 / s, Hz)
-    w = [] # Variational parameter w (1 / s, Hz)
-    κ = [] # Spring constant (kg / s^2)
-    M = [] # Fictitious mass (kg)
-    F = [] # Free energy (meV)
-    μ = [] # Mobility (cm^2 / Vs)
-    Γ = [] # Optical absorption (1 / cm)
+    β = Vector{Float64}(undef, length(T)) # Reduced thermodynamic beta (unitless)
+    v = Vector{Float64}(undef, length(T)) # Variational parameter v (1 / s, Hz)
+    w = Vector{Float64}(undef, length(T)) # Variational parameter w (1 / s, Hz)
+    κ = Vector{Float64}(undef, length(T)) # Spring constant (kg / s^2)
+    M = Vector{Float64}(undef, length(T)) # Fictitious mass (kg)
+    F = Vector{Float64}(undef, length(T)) # Free energy (meV)
+    Z = Matrix{ComplexF64}(undef, length(Ω), length(T)) # Complex impedence (cm^2 / Vs)
+    σ = Matrix{ComplexF64}(undef, length(Ω), length(T)) # Complex conductivity (1 / cm)
 
     # Initialise variation parameters.
     v_t, w_t = 0.0, 0.0
@@ -30,28 +27,28 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
         print("\n")
     end
 
-    for t in T # Iterate over temperatures.
+    for t in 1:length(T) # Iterate over temperatures.
         if verbose
-            print("\e[2K", "Working on temperature: $(t) K / $(temp[end]) K.\n")
+            print("\e[2K", "Working on temperature: $(T[t]) K / $(T[end]) K.\n")
         end
 
-        if t == 0.0 # If T = 0
-            append!(β, Inf)  # set β = Inf
+        if T[t] == 0.0 # If T = 0
+            β[t] = Inf  # set β = Inf
 
             # Evaluate variational parameters.
             v_t, w_t = variation(α; v = v_t, w = w_t)
-            append!(v, v_t)
-            append!(w, w_t)
+            v[t] = v_t
+            w[t] = w_t
 
             # Evaluate fictitious particle mass and spring constant.
             κ_t = (v_t^2 - w_t^2) # spring constant
             M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
-            append!(κ, κ_t)
-            append!(M, M_t)
+            κ[t] = κ_t
+            M[t] = M_t
 
             # Evaluate free energy at zero temperature. NB: Enthalpy.
-            F_t = free_energy(v_t, w_t, α) * 1000 * ħ * ω / eV
-            append!(F, F_t)
+            F_t = Float64(free_energy(v_t, w_t, α)) * 1000 * ħ * ω / eV
+            F[t] = F_t
 
             # Broadcast data.
             if verbose
@@ -60,77 +57,70 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3), " meV")
             end
 
-            # Prepare empty arrays for different frequencies.
-            μ_t = [] # Mobilities
-            Γ_t = [] # Optical absorptions
+            for f in 1:length(Ω)# Iterate over frequencies
 
-            for f in Ω # Iterate over frequencies
-
-                if f == 0.0 # If Ω = 0 at T = 0
+                if Ω[f] == 0.0 # If Ω = 0 at T = 0
 
                     # Evaluate AC mobilities. NB: Ω = 0 is DC mobility.
-                    μ_f = polaron_mobility_dc(1e3, α, v_t, w_t)
-                    append!(μ_t, μ_f)
+                    Z_f = 0 + 1im * 0
+                    Z[f, t] = Z_f
 
                     # Evaluate frequency-dependent optical absorptions.
-                    Γ_f = optical_absorption_dc(1e3, α, v_t, w_t)
-                    append!(Γ_t, Γ_f)
+                    σ_f = 0 + 1im * 0
+                    σ[f, t] = σ_f
 
                     # Broadcast data.
                     if verbose
-                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                        println("\e[2K", "DC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "DC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
                     end
 
-                elseif f > 0.0 # If Ω > 0 at T = 0
+                elseif Ω[f] > 0.0 # If Ω > 0 at T = 0
 
                     # Evaluate AC mobilities.
-                    μ_f = 100^2 * eV * polaron_mobility_ac(f, α, v_t, w_t) / (ω * m_eff * m_e)
-                    append!(μ_t, μ_f)
+                    Z_f = complex_impedence(Ω[f], α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z[f, t] = Z_f
 
                     # Evaluate optical absorptions.
-                    Γ_f = optical_absorption_ac(f, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
-                    append!(Γ_t, Γ_f)
+                    σ_f = complex_conductivity(Ω[f], α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ[f, t] = σ_f
 
                     # Broadcast data.
                     if verbose
-                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                        println("\e[2K", "AC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                        println("\e[2K", "AC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
                     end
                 end
 
                 print("\033[F"^3) # Move cursor back
             end
 
-            # Add freq-dependent mobilities and absorptions for T = 0.
-            append!(μ, [μ_t])
-            append!(Γ, [Γ_t])
             if verbose
                 print("\033[F"^4) # Move cursor back
             end
 
-        elseif t > 0.0 # If T > 0
+        elseif T[t] > 0.0 # If T > 0
 
             # Evaluate reduced thermodynamic beta.
-            β_t = ħ * ω / (k_B * t)
-            append!(β, β_t)
+            β_t = ħ * ω / (k_B * T[t])
+            β[t] = β_t
 
             # Evaluate variational parameters.
             v_t, w_t = variation(α, β_t; v = v_t, w = w_t)
-            append!(v, v_t)
-            append!(w, w_t)
+            v[t] = v_t
+            w[t] = w_t
 
             # Evaluate fictitious particle mass and spring constant.
             κ_t = (v_t^2 - w_t^2) # spring constant
             M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
-            append!(κ, κ_t)
-            append!(M, M_t)
+            κ[t] = κ_t
+            M[t] = M_t
 
             # Evaluate free energy at finite temperature.
-            F_t = free_energy(v_t, w_t, α, β_t) * 1000 * ħ * ω / eV
-            append!(F, F_t)
+            F_t = Float64(free_energy(v_t, w_t, α, β_t)) * 1000 * ħ * ω / eV
+            F[t] = F_t
 
             # Broadcast data.
             if verbose
@@ -139,44 +129,40 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 println("\e[2K", "Free Energy: ", round(F_t, digits = 3), " meV")
             end
 
-            # Prepare empty arrays for different frequencies.
-            μ_t = [] # Mobilities
-            Γ_t = [] # Optical absorptions
+            for f in 1:length(Ω) # Iterate over frequencies
 
-            for f in Ω # Iterate over frequencies
-
-                if f == 0.0 # If Ω = 0 at T > 0
+                if Ω[f] == 0.0 # If Ω = 0 at T > 0
 
                     # Evaluate DC mobility.
-                    μ_f = 100^2 * eV * polaron_mobility_dc(β_t, α, v_t, w_t) / (ω * m_eff * m_e)
-                    append!(μ_t, μ_f)
+                    Z_f = complex_impedence_dc(β_t, α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z[f, t] = Z_f
 
                     # Evaluate DC optical absorption. 
-                    Γ_f = optical_absorption_dc(β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
-                    append!(Γ_t, Γ_f)
+                    σ_f = complex_conductivity_dc(β_t, α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ[f, t] = σ_f
 
                     # Broadcast data.
                     if verbose
-                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                        println("\e[2K", "DC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "DC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
                     end
 
-                elseif f > 0.0 # If Ω > 0 at T > 0
+                elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
 
                     # Evaluate AC mobilities.
-                    μ_f = 100^2 * eV * polaron_mobility_ac(f, β_t, α, v_t, w_t) / (ω * m_eff * m_e)
-                    append!(μ_t, μ_f)
+                    Z_f = complex_impedence(Ω[f], β_t, α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z[f, t] = Z_f
 
                     # Evaluate optical absorptions.
-                    Γ_f = optical_absorption_ac(f, β_t, α, v_t, w_t) / (100 * c * ϵ_0 * sqrt(ϵ_optic))
-                    append!(Γ_t, Γ_f)
+                    σ_f = complex_conductivity(Ω[f], β_t, α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ[f, t] = σ_f
 
                     # Broadcast data.
                     if verbose
-                        println("\e[2K", "Working on Frequency: $(f) Hz / $(efield_freq[end]) Hz")
-                        println("\e[2K", "DC Mobility: ", round(μ_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "Optical absorption: ", round(Γ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                        println("\e[2K", "AC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
+                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
                     end
                 end
 
@@ -185,9 +171,6 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 end
             end
 
-            # Add freq-dependent mobilities and absorptions for T > 0.
-            append!(μ, [μ_t])
-            append!(Γ, [Γ_t])
             if verbose
                 print("\033[F"^4) # Move cursor back
             end
@@ -202,5 +185,227 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
     end
 
     # Return Polaron mutable struct with evaluated data.
-    return Polaron(α, T, β, v, w, κ, M, F, Ω, μ, Γ)
+    return Polaron(α, T, β, v, w, κ, M, F, Ω, Z, σ)
+end
+
+function make_polaron(α; temp = 300.0, efield_freq = 0.0, verbose = true)
+
+# Collect data.
+Ω = efield_freq
+T = temp
+ω = 1
+
+# Prepare empty arrays for different temperatures.
+β = Vector{Float64}(undef, length(T)) # Reduced thermodynamic beta (unitless)
+v = Vector{Float64}(undef, length(T)) # Variational parameter v (1 / s, Hz)
+w = Vector{Float64}(undef, length(T)) # Variational parameter w (1 / s, Hz)
+κ = Vector{Float64}(undef, length(T)) # Spring constant (kg / s^2)
+M = Vector{Float64}(undef, length(T)) # Fictitious mass (kg)
+F = Vector{Float64}(undef, length(T)) # Free energy (meV)
+Z = Matrix{ComplexF64}(undef, length(Ω), length(T)) # Mobility (cm^2 / Vs)
+σ = Matrix{ComplexF64}(undef, length(Ω), length(T)) # Optical absorption (1 / cm)
+
+# Initialise variation parameters.
+v_t, w_t = 0.0, 0.0
+if verbose
+    print("\n")
+end
+
+for t in 1:length(T) # Iterate over temperatures.
+    if verbose
+        print("\e[2K", "Working on temperature: $(T[t]) K / $(T[end]) K.\n")
+    end
+
+    if T[t] == 0.0 # If T = 0
+        β[t] = Inf  # set β = Inf
+
+        # Evaluate variational parameters.
+        v_t, w_t = variation(α; v = v_t, w = w_t)
+        v[t] = v_t
+        w[t] = w_t
+
+        # Evaluate fictitious particle mass and spring constant.
+        κ_t = (v_t^2 - w_t^2) # spring constant
+        M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
+        κ[t] = κ_t
+        M[t] = M_t
+
+        # Evaluate free energy at zero temperature. NB: Enthalpy.
+        F_t = Float64(free_energy(v_t, w_t, α))
+        F[t] = F_t
+
+        # Broadcast data.
+        if verbose
+            println("\e[2K", "α: ", round(α, digits = 3), " | β: ", Inf, " | v: ", round(v_t, digits = 3), " | w: ", round(w_t, digits = 3))
+            println("\e[2K", "κ: ", round(κ_t, digits = 3), " | M: ", round(M_t, digits = 3))
+            println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3))
+        end
+
+        for f in 1:length(Ω)# Iterate over frequencies
+
+            if Ω[f] == 0.0 # If Ω = 0 at T = 0
+
+                # Evaluate DC mobilities. NB: Ω = 0 is DC mobility.
+                Z_f = 0 + 1im * 0
+                Z[f, t] = Z_f
+
+                # Evaluate frequency-dependent optical absorptions.
+                σ_f = 0 + 1im * 0
+                σ[f, t] = σ_f
+
+                # Broadcast data.
+                if verbose
+                    println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                    println("\e[2K", "DC Mobility: ", round(Z_f, digits = 3))
+                    println("\e[2K", "Optical absorption: ", round(σ_f, digits = 3))
+                end
+
+            elseif Ω[f] > 0.0 # If Ω > 0 at T = 0
+
+                # Evaluate AC mobilities.
+                Z_f = complex_impedence(Ω[f], α, v_t, w_t) 
+                Z[f, t] = Z_f
+
+                # Evaluate optical absorptions.
+                σ_f = complex_conductivity(Ω[f], α, v_t, w_t)
+                σ[f, t] = σ_f
+
+                # Broadcast data.
+                if verbose
+                    println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                    println("\e[2K", "AC Mobility: ", round(Z_f, digits = 3))
+                    println("\e[2K", "Optical absorption: ", round(σ_f, digits = 3))
+                end
+            end
+
+            print("\033[F"^3) # Move cursor back
+        end
+
+        if verbose
+            print("\033[F"^4) # Move cursor back
+        end
+
+    elseif T[t] > 0.0 # If T > 0
+
+        # Evaluate reduced thermodynamic beta.
+        β_t = ω / T[t]
+        β[t] = β_t
+
+        # Evaluate variational parameters.
+        v_t, w_t = variation(α, β_t; v = v_t, w = w_t)
+        v[t] = v_t
+        w[t] = w_t
+
+        # Evaluate fictitious particle mass and spring constant.
+        κ_t = (v_t^2 - w_t^2) # spring constant
+        M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
+        κ[t] = κ_t
+        M[t] = M_t
+
+        # Evaluate free energy at finite temperature.
+        F_t = Float64(free_energy(v_t, w_t, α, β_t))
+        F[t] = F_t
+
+        # Broadcast data.
+        if verbose
+            println("\e[2K", "α: ", round(α, digits = 3), " | β: ", round(β_t, digits = 3), " | v: ", round(v_t, digits = 3), " | w: ", round(w_t, digits = 3))
+            println("\e[2K", "κ: ", round(κ_t, digits = 3), " | M: ", round(M_t, digits = 3))
+            println("\e[2K", "Free Energy: ", round(F_t, digits = 3))
+        end
+
+        for f in 1:length(Ω) # Iterate over frequencies
+
+            if Ω[f] == 0.0 # If Ω = 0 at T > 0
+
+                # Evaluate DC mobility.
+                Z_f = complex_impedence_dc(β_t, α, v_t, w_t)
+                Z[f, t] = Z_f
+
+                # Evaluate DC optical absorption. 
+                σ_f = complex_conductivity_dc(β_t, α, v_t, w_t)
+                σ[f, t] = σ_f
+
+                # Broadcast data.
+                if verbose
+                    println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                    println("\e[2K", "DC Mobility: ", round(Z_f, digits = 3))
+                    println("\e[2K", "Optical absorption: ", round(σ_f, digits = 3))
+                end
+
+            elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
+
+                # Evaluate AC mobilities.
+                Z_f = complex_impedence(Ω[f], β_t, α, v_t, w_t)
+                Z[f, t] = Z_f
+
+                # Evaluate optical absorptions.
+                σ_f = complex_conductivity(Ω[f], β_t, α, v_t, w_t)
+                σ[f, t] = σ_f
+
+                # Broadcast data.
+                if verbose
+                    println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
+                    println("\e[2K", "AC Mobility: ", round(Z_f, digits = 3))
+                    println("\e[2K", "Optical absorption: ", round(σ_f, digits = 3))
+                end
+            end
+
+            if verbose
+                print("\033[F"^3) # Move cursor back
+            end
+        end
+
+        if verbose
+            print("\033[F"^4) # Move cursor back
+        end
+
+    else # Negative temperatures are unphysical!
+        println("Temperature must be either zero or positive.")
+    end
+end
+
+if verbose
+    print("\n"^7) # Clear prints
+end
+
+# Return Polaron mutable struct with evaluated data.
+return Polaron(α, T, β, v, w, κ, M, F, Ω, Z, σ)
+end
+
+function save_polaron(polaron; path = "../data/")
+    polaron_df = DataFrames.DataFrame(
+        alpha = [polaron.α for i in 1:length(polaron.T)],
+        temperature = polaron.T,
+        beta = polaron.β,
+        v = polaron.v,
+        w = polaron.w,
+        spring_constant = polaron.κ,
+        polaron_mass = polaron.M,
+        free_energy = polaron.F,
+    )
+    mobility_df = DataFrames.DataFrame([[0.0, polaron.T...]'; [polaron.Ω polaron.μ]], :auto)
+    absorption_df = DataFrames.DataFrame([[0.0, polaron.T...]'; [polaron.Ω polaron.Γ]], :auto)
+    CSV.write(path * "polaron_data.csv", polaron_df)
+    CSV.write(path * "mobility_data.csv", mobility_df)
+    CSV.write(path * "absorption_data.csv", absorption_df)
+
+end
+
+function load_polaron(polaron_data_path, mobility_data_path, absorption_data_path)
+    polaron_data = CSV.File(polaron_data_path) |> Tables.matrix
+    mobility_data = CSV.File(mobility_data_path) |> Tables.matrix
+    absorption_data = CSV.File(absorption_data_path) |> Tables.matrix
+    return Polaron(
+        polaron_data[1], 
+        polaron_data[:, 2],
+        polaron_data[:, 3],
+        polaron_data[:, 4],
+        polaron_data[:, 5],
+        polaron_data[:, 6],
+        polaron_data[:, 7],
+        polaron_data[:, 8],
+        mobility_data[2:end, 1],
+        mobility_data[2:end, 2:end],
+        absorption_data[2:end, 2:end]
+    )
 end

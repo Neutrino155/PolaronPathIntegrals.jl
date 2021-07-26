@@ -65,3 +65,7 @@ function χ_dc(β, α, v, w)
     integrand(x) = (1 - exp(-1im * Ω * x)) * imag(S(x)) / Ω
     QuadGK.quadgk(x -> integrand(x), 0.0, Inf)[1]
 end
+
+# for i in 1:length(α)
+#     append!(s, [χ(i, βr[j], α[j], 3.36600719617118, 2.6419291934269666) for i in 0.1:0.1:3.5])
+# end

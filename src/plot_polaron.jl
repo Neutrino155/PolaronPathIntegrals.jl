@@ -40,38 +40,53 @@ function plot_polaron(polaron; N = 6)
     Ω = polaron.Ω # Electric field frequencies
     β = polaron.β # Reduced thermodynamic betas
     T = polaron.T # Temperatures
-    μ = polaron.μ # Mobilities
-    Γ = polaron.Γ # Optical absorptions
+    Z = polaron.Z # Mobilities
+    σ = polaron.σ # Optical absorptions
 
-    # Plot Mobility versus Frequency for N different Temperatures.
-    μ_Ω = Plots.plot(Ω, μ[1:Int(floor(length(T)/(N - 1))):end], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N - 1))):end]...), title = "Mobility \$\\mu(\\Omega)\$", ylim = (0, maximum(μ)[end] * 1.1), xlabel = "\$\\Omega\$ / \$\\omega\$", ylabel = "\$\\mu(\\Omega)\$ \$(cm^2/Vs)\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    # Plot Mobility versus Frequency for N different Temperatures. 
+    σ_Ω = Plots.plot(Ω, [real(σ[:, i]) for i in 1:Int(floor(length(T)/(N))):length(T)], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N))):end]...), title = "Conductivity σ(Ω)", xlabel = "Ω / ω", ylabel = "σ(Ω)", legend = true, minorgrid = true, linewidth = 1.8, xtickfontsize = 15, ytickfontsize = 15, xguidefontsize = 15, yguidefontsize = 15, legendfontsize = 15, thickness_scaling = 1.5, size = (600, 600), linestyle  = :solid)
+    cur_colors = theme_palette(:default)
+    for i in 1:Int(floor(length(T)/(N))):length(T)
+        Plots.plot!(σ_Ω, Ω, imag(σ[:, i]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(T)/(N))))÷Int(floor(length(T)/(N)))])
+    end
 
     # Plot Mobility versus Temperature for N different Frequencies.
-    μ_T = Plots.plot(T, vcat.(μ...)[1:Int(floor(length(Ω)/(N - 1))):end], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N - 1))):end]...), title = "Mobility \$\\mu(T)\$", ylim = (0, maximum(μ)[end] * 1.1),  xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\mu(T)\$ \$(cm^2/Vs)\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    σ_T = Plots.plot(T, [real.(σ[i, :]) for i in 1:Int(floor(length(Ω)/(N))):length(Ω)], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N))):end]...), title = "Conductivity σ(T)",  xlabel = "T / ω", ylabel = "σ(T)", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    cur_colors = theme_palette(:default)
+    for i in 1:Int(floor(length(Ω)/(N))):length(Ω)
+        Plots.plot!(σ_T, T, imag(σ[i, :]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(Ω)/(N))))÷Int(floor(length(Ω)/(N)))])
+    end
 
     # Plot Asbsorption versus Frequency for N different Temperatures.
-    Γ_Ω = Plots.plot(Ω, Γ[1:Int(floor(length(T)/(N - 1))):end], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N - 1))):end]...), title = "Optical Absorption \$\\Gamma(\\Omega)\$", ylim = (0, sort(maximum(vcat.(Γ...)))[end - 1] * 1.1),  xlabel = "\$\\Omega\$ / \$\\omega\$", ylabel = "\$\\Gamma(\\Omega)\$ \$(cm^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
-
+    Z_Ω = Plots.plot(Ω, [real(Z[:, i]) for i in 1:Int(floor(length(T)/(N))):length(T)], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N))):end]...), title = "Impedence Z(Ω)",  xlabel = "Ω / ω", ylabel = "Z(Ω)", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    cur_colors = theme_palette(:default)
+    for i in 1:Int(floor(length(T)/(N))):length(T)
+        Plots.plot!(Z_Ω, Ω, imag(Z[:, i]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(T)/(N))))÷Int(floor(length(T)/(N)))])
+    end
     # Plot Absorption versus Temperature for N different Frequencies.
-    Γ_T = Plots.plot(T, vcat.(Γ...)[1:Int(floor(length(Ω)/(N - 1))):end], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N - 1))):end]...), title = "Optical Absorption \$\\Gamma(T)\$", ylim = (0, sort(maximum(vcat.(Γ...)))[end - 1] * 1.1),  xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\Gamma(T)\$ \$(cm^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    Z_T = Plots.plot(T, [real(Z[i, :]) for i in 1:Int(floor(length(Ω)/(N))):length(Ω)], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N))):end]...), title = "Impedence Z(T)",  xlabel = "T / ω", ylabel = "Z(T)", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    cur_colors = theme_palette(:default)
+    for i in 1:Int(floor(length(Ω)/(N))):length(Ω)
+        Plots.plot!(Z_T, T, imag(Z[i, :]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(Ω)/(N))))÷Int(floor(length(Ω)/(N)))])
+    end
 
     # Plot Spring Constant versus Temperature.
-    κ_T = Plots.plot(T, κ, title = "Spring Constant \$\\kappa(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$\\kappa(T)\$ / \$m_e\$ \$(kg/s^2)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    κ_T = Plots.plot(T, κ, title = "Spring Constant κ(T)", xlabel = "T / ω", ylabel = "κ / m_e", legend = false, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
 
     # Plot Fictitious Mass versus Temperature.
-    M_T = Plots.plot(T, M, title = "Fictitious Mass \$M(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$M(T)\$ / \$m_e\$ \$(kg)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    M_T = Plots.plot(T, M, title = "Fictitious Mass M(T)", xlabel = "T / ω", ylabel = "M(T)", legend = false, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
 
     # Plot Variational Parameters v & w versus Temperature.
-    vw_T = Plots.plot(T, [v, w], label = ["v" "w"], title = "Variational Parameters \$v(T)\$ & \$w(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$v\$ & \$w\$ \$(s^{-1})\$", legend = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    vw_T = Plots.plot(T, [v, w], label = ["v" "w"], title = "Variational Parameters v(T) & w(T)", xlabel = "T(K)", ylabel = "v & w (s^{-1})", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
 
     # Plot Free Energy versus Temperature.
-    F_T = Plots.plot(T, F, title = "Free Energy \$F(T)\$", xlabel = "\$T\$ \$(K)\$", ylabel = "\$F(T)\$ \$(meV)\$", legend = false, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    F_T = Plots.plot(T, F, title = "Free Energy F(T)", xlabel = "T(K)", ylabel = "F(T) (meV)", legend = false, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
 
     # Combine all plots above as subplots for combined view.
-    all_plots = Plots.plot(μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T, layout = (2, 4), size = (1800, 900), linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 8, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 10, thickness_scaling = 1.2)
+    all_plots = Plots.plot(σ_Ω, σ_T, Z_Ω, Z_T, κ_T, M_T, vw_T, F_T, layout = (2, 4), size = (1800, 900), minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 8, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 10, thickness_scaling = 1.2)
 
     # Return all plots.
-    all_plots, μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T
+    all_plots, σ_Ω, σ_T, Z_Ω, Z_T, κ_T, M_T, vw_T, F_T
 end
 
 """
@@ -82,7 +97,7 @@ save_polaron_plots(plots::Array{Plot}, path::String, ext::String)
 
 function save_polaron_plots(plots, path, ext = "svg")
     for plot in plots
-        savefig(plot, path * "$(plot)." * ext)
+        Plots.savefig(plot, path * "$(plot)." * ext)
     end
 end
 
