@@ -14,7 +14,7 @@ polaron_memory_function_thermal(Ω::Float64, β::Float64, α::Float64, v::Float6
 function polaron_memory_function_thermal(Ω, β, α, v, w; rtol = 1e-3)
 
     # FHIP1962, page 1011, eqn (47c).
-    R = (v^2 - w^2) / (w^2 * v) \omega   
+    R = (v^2 - w^2) / (w^2 * v)  
 
     # FHIP1962, page 1009, eqn (35c).
     D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β * v / 2) + x^2 / β - 1im * (R * sin(v * x) + x))
