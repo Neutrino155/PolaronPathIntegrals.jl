@@ -51,10 +51,23 @@ function free_energy(v, w, α, β)
 end
 
 """
-Multiple Phonon Branches
+----------------------------------------------------------------------
+Multiple Branch Polaron Free Energy
+----------------------------------------------------------------------
+
+This section of the code is dedicated to calculating the polaron free energy, generalised from Osaka's expression to the case where multiple phonon modes are present in the material.
 """
 
-function κ_i(i, v, w) # fictitious spring constant, multiple variational params
+"""
+κ_i(i::Integer, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
+
+    Calculates the spring-constant coupling the electron to the `ith' fictitious mass that approximates the exact electron-phonon interaction with a harmonic coupling to a massive fictitious particle. NB: Not to be confused with the number of physical phonon branches; many phonon branches could be approximated with one or two etc. fictitious masses for example. The number of fictitious mass does not necessarily need to match the number of phonon branches.
+
+     - i enumerates the current fictitious mass.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+"""
+function κ_i(i, v, w)
     κ = v[i]^2 - w[i]^2
     if length(v) > 1
         for j in 1:length(v)
@@ -66,7 +79,16 @@ function κ_i(i, v, w) # fictitious spring constant, multiple variational params
     return κ
 end
 
-function h_i(i, v, w) # some vector relating to harmonic eigenmodes
+"""
+h_i(i::Integer, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
+
+    Calculates the normal-mode (the eigenmodes) frequency of the coupling between the electron and the `ith' fictitious mass that approximates the exact electron-phonon interaction with a harmonic coupling to a massive fictitious particle. NB: Not to be confused with the number of physical phonon branches; many phonon branches could be approximated with one or two etc. fictitious masses for example. The number of fictitious mass does not necessarily need to match the number of phonon branches.
+
+     - i enumerates the current fictitious mass.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+"""
+function h_i(i, v, w)
     h = v[i]^2 - w[i]^2
     if length(v) > 1
         for j in 1:length(v)
@@ -78,12 +100,31 @@ function h_i(i, v, w) # some vector relating to harmonic eigenmodes
     return h
 end
 
-function C_ij(i, j, v, w) # generalised Feynman C variational parameter (inclusive of multiple v and w params)
+"""
+C_ij(i::Integer, j::Integer, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
+
+    Calculates the element to the coupling matrix C_ij (a generalisation of Feynman's `C` coupling variational parameter) between the electron and the `ith' and `jth' fictitious masses that approximates the exact electron-phonon interaction with a harmonic coupling to a massive fictitious particle. NB: Not to be confused with the number of physical phonon branches; many phonon branches could be approximated with one or two etc. fictitious masses for example. The number of fictitious mass does not necessarily need to match the number of phonon branches.
+
+     - i, j enumerate the current fictitious masses under focus (also the index of the element in the coupling matrix C)
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+"""
+function C_ij(i, j, v, w)
     C = w[i] * κ_i(i, v, w) * h_i(j, v, w) / (4 * (v[j]^2 - w[i]^2))
     return C
 end
 
-function D_j(τ, β, v, w) # log of dynamic structure factor for polaron 
+"""
+D_j(τ::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
+
+    Calculates the recoil function that approximates the exact influence (recoil effects) of the phonon bath on the electron with the influence of the harmonicly coupled fictitious masses on the electron. It appears in the exponent of the intermediate scattering function.
+
+     - τ is the imaginary time variable.
+     - β is the reduced thermodynamic temperature ħ ω_j / (kB T) associated with the `jth` phonon mode.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+"""
+function D_j(τ, β, v, w)
     D = τ * (1 - τ / β)
     for i in 1:length(v)
         if v[i] != w[i]
@@ -93,60 +134,127 @@ function D_j(τ, β, v, w) # log of dynamic structure factor for polaron
     return D
 end
 
-function multi_free_energy(v_params, w_params, T, ϵ_optic, m_eff, volume, freqs_and_ir_activity, phonon_branch)
+"""
+B_j(α::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
 
-    setprecision(BigFloat, 32) # Speed up. Stops potential overflows.
+    Generalisation of the B function from Equation 62c in Biaggio and Hellwarth []. This is the expected value of the exact action <S_j> taken w.r.t trial action, given for the `jth` phonon mode.
 
-    # Extract phonon frequencies and ir activities.
+     - α is the partial dielectric electron-phonon coupling parameter for the `jth` phonon mode.
+     - β is the reduced thermodynamic temperature ħ ω_j / (kB T) associated with the `jth` phonon mode.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+"""
+function B_j(α, β, v, w)
+    B_integrand(τ) = cosh(β / 2 - abs(τ)) / (sinh(β / 2) * sqrt(D_j(abs(τ), β, v, w)))
+    B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, β / 2)[1]
+    return B
+end
+
+"""
+C_j(β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Float64)
+
+    Generalisation of the C function from Equation 62e in Biaggio and Hellwarth []. This is the expected value of the trial action <S_0> taken w.r.t trial action.
+
+     - β is the reduced thermodynamic temperature ħ ω_j / (kB T) associated with the `jth` phonon mode.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+     - n is the total number of phonon modes.
+"""
+function C_j(β, v, w, n)
+
+    s = 0.0
+
+    # Sum over the contributions from each fictitious mass.
+    for i in 1:length(v)
+        for j in 1:length(v)
+            s += C_ij(i, j, v, w) / (v[j] * w[i]) * (coth(β * v[j] / 2)  - 2 / (β * v[j]))
+        end
+    end
+
+    # Divide by the number of phonon modes to give an average contribution per phonon mode.
+    return 3 * s / n
+end
+
+"""
+A_j(β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Float64)
+
+    Generalisation of the A function from Equation 62b in Biaggio and Hellwarth []. This is the Helmholtz free energy of the trial model.
+
+     - β is the reduced thermodynamic temperature ħ ω_j / (kB T) associated with the `jth` phonon mode.
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+     - n is the total number of phonon modes.
+"""
+function A_j(β, v, w, n)
+
+    s = -log(2π * β) / 2
+
+    # Sum over the contributions from each fictitious mass.
+    for i in 1:length(v)
+        if v[i] != w[i]
+            s += log(v[i] / w[i]) - log(sinh(v[i] * β / 2) / sinh(w[i] * β / 2))
+        end
+    end
+
+    # Divide by the number of phonon modes to give an average contribution per phonon mode.
+    3 / β * s / n
+end
+
+"""
+multi_free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 1), T::Float64, ϵ_optic::Float64, m_eff::Float64, volume::Float64, freqs_and_ir_activity::Matrix{Float64})
+
+    Calculates the Helmholtz free energy of the polaron for a material with multiple phonon branches. This generalises Osaka's free energy expression (below Equation (22) in []).
+
+     - v is an one-dimensional array of the v variational parameters.
+     - w is an one-dimensional array of the w variational parameters.
+     - T is the environment temperature in kelvin (K).
+     - ϵ_optic is the optical dielectric constant of the material.
+     - m_eff is the band mass of the electron (in units of electron mass m_e) .
+     - volume is the volume of the unit cell of the material in m^3.
+     - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
+"""
+function multi_free_energy(v_params, w_params, T, ϵ_optic, m_eff, volume, freqs_and_ir_activity)
+
+    # Speed up. Stops potential overflows.
+    setprecision(BigFloat, 32) 
+
+    # Extract phonon modes frequencies and ir activities.
     phonon_freqs = freqs_and_ir_activity[:, 1]
     ir_activity = freqs_and_ir_activity[:, 2]
 
+    # Total number of phonon modes / branches.
     num_of_branches = length(phonon_freqs)
-    j = phonon_branch # jth phonon branch
     
-    # total dielectric contribution from all phonon branches (used as a normalisation)
+    # Total ionic dielectric contribution from all phonon modes (used as a normalisation).
     ϵ_tot = ϵ_total(freqs_and_ir_activity, volume)
 
-    # Generalisation of B i.e. Equation 62c in Hellwarth.
-    S_integrand(τ, β, v, w) = cosh(β / 2 - τ) / (sinh(β / 2) * sqrt(abs(D_j(τ, β, v, w))))
-    S(β, α, v, w) = α / √π * quadgk(τ -> S_integrand(τ, β, v, w), 0.0, β / 2)[1]
+    F = 0.0
 
-    # Generalisation of C i.e. Equation 62e in Hellwarth.
-    function S_0(β, v, w)
-        s = 0.0
-        for i in 1:length(v)
-            for j in 1:length(v)
-                s += C_ij(i, j, v, w) / (v[j] * w[i]) * (coth(β * v[j] / 2)  - 2 / (β * v[j]))
-            end
-        end
-        3 * s / num_of_branches 
+    # Sum over the phonon modes.
+	for j in 1:num_of_branches
+
+        # Angular phonon frequency of the phonon mode (rad Hz).
+		ω_j = 2π * 1e12 * phonon_freqs[j]
+
+        # Reduced thermodynamic temperature of the phonon mode (unitless).
+		β_j = ħ * ω_j / (kB * T) 
+
+        # The ionic contribution to the dielectric function from the phonon mode.
+		ϵ_ionic_j = ϵ_ionic_mode(phonon_freqs[j], ir_activity[j], volume)
+
+        # The partial dielectric electron-phonon coupling parameter of the phonon mode.
+		α_j = frohlich_α_j(ϵ_optic, ϵ_ionic_j, ϵ_tot, phonon_freqs[j], m_eff) 
+
+        # Add contribution to the total free energy from the phonon mode.
+		F += -(B_j(β_j, α_j, v_params, w_params) + C_j(β_j, v_params, w_params, num_of_branches) + A_j(β_j, v_params, w_params)) * ħ * ω_j
+        
+        # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
+        # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
     end
+	
+    # print out the total polaron free energy from all phonon modes.
+    # println("Total free energy: ", F * ħ / eV * 1e3, " meV")
 
-    # Generalisation of A i.e. Equation 62b in Hellwarth.
-    function log_Z_0(β, v, w)
-        s = -log(2π * β) / 2
-        for i in 1:length(v)
-            if v[i] != w[i]
-                s += log(v[i] / w[i]) -log(sinh(v[i] * β / 2) / sinh(w[i] * β / 2))
-            end
-        end
-        3 / β * s / num_of_branches
-    end
-
-    ω = 2π * 1e12 * phonon_freqs[j] # angular phonon freq im 2π Hz
-    β = BigFloat(ħ * ω / (kB * T)) # reduced thermodynamic beta
-    ϵ_ionic = ϵ_ionic_mode(phonon_freqs[j], ir_activity[j], volume) # ionic dielectric contribution for current phonon branch
-    α = frohlich_α_j(ϵ_optic, ϵ_ionic, ϵ_tot, phonon_freqs[j], m_eff) # decomposed alpha for current phonon branch
-
-    # Print out data.
-    # println("α = $α, β = $β, f = $(phonon_freqs[j]), ")
-    # print("F0 = $(log_Z_0(β, ω, v_params .* ω, w_params .* ω) / β), ")
-    # print("<S0> = $(S_0(β, ω, v_params .* ω, w_params .* ω) / β), ")
-    # print("<S> = $(S(β, α, ω, v_params .* ω, w_params .* ω) / β), ")
-    # println("F = $(-log_Z_0(β, ω, v_params .* ω, w_params .* ω) / β - S(β, α, ω, v_params .* ω, w_params .* ω) / β + S_0(β, ω, v_params .* ω, w_params .* ω) / β)")
-    
-    # F = -(A + B + C) in Hellwarth.
-    F = -(S(β, α, v_params, w_params) + S_0(β, v_params, w_params) + log_Z_0(β, v_params, w_params)) * ħ * ω # × ħω branch phonon energy
-    
-    return F / eV * 1e3 # change to meV
+    # Free energy in units of meV
+    return F / eV * 1e3 
 end
