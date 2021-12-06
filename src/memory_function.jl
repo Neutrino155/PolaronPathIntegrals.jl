@@ -141,7 +141,7 @@ function multi_memory_function(Ω::Float64, β::Array{Float64}(undef, 1), α::Ar
      - w is an one-dimensional array of the w variational parameters.
      - m_eff is the is the conduction band mass of the particle (typically electron / hole, in units of electron mass m_e).
 """
-function polaron_memory_function_thermal(Ω, β::Array, α::array, v, w; ω = 1.0, rtol = 1e-3)
+function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1009, eqn (36).
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
@@ -167,7 +167,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::array, v, w; ω = 1.
     return memory
 end
 
-function polaron_memory_function_athermal(Ω, α::array, v, w; ω = 1.0, rtol = 1e-3)
+function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1009, eqn (36).
     S(t) = exp(im * t) / D_j(-1im * t, v, w)^(3 / 2)
@@ -193,7 +193,7 @@ function polaron_memory_function_athermal(Ω, α::array, v, w; ω = 1.0, rtol = 
     return memory
 end
 
-function polaron_memory_function_dc(β::Array, α::array, v, w; ω = 1.0, rtol = 1e-3)
+function polaron_memory_function_dc(β::Array, α::Array, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1009, eqn (36).
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
