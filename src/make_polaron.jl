@@ -22,7 +22,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
     end
 
     # Prepare empty arrays for different temperatures.
-    β = Vector{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
+    β = Matrix{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
     v = Vector{Float64}(undef, N_temp) # Variational parameter v (1 / s, Hz)
     w = Vector{Float64}(undef, N_temp) # Variational parameter w (1 / s, Hz)
     κ = Vector{Float64}(undef, N_temp) # Spring constant (kg / s^2)
