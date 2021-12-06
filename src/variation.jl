@@ -29,24 +29,11 @@ function variation(α; v = 0.0, w = 0.0)
         lower,
         upper,
         initial,
-        Fminbox(BFGS()),
+        Fminbox(LBFGS()),
     )
 
     # Get v and w values that minimise the free energy.
     v, w = Optim.minimizer(solution)
-
-    # If optimisation does not converge or if v ≤ w, pick new random starting guesses for v and w between 1.0 and 11.0. Repeat until the optimisation converges with v > w.
-    while Optim.converged(solution) == false || v <= w
-        initial = sort(rand(2), rev=true) .* 10.0 .+ 1.0
-        solution = Optim.optimize(
-            Optim.OnceDifferentiable(f, initial; autodiff = :forward),
-            lower,
-            upper,
-            initial,
-            Fminbox(BFGS()),
-        )
-        v, w = Optim.minimizer(solution)
-    end
 
     # Return variational parameters that minimise the free energy.
     return v, w
@@ -81,83 +68,82 @@ function variation(α, β; v = 0.0, w = 0.0)
         lower,
         upper,
         initial,
-        Fminbox(BFGS()),
+        Fminbox(LBFGS()),
     )
 
     # Get v and w values that minimise the free energy.
     v, w = Optim.minimizer(solution)
 
-    # If optimisation does not converge or if v ≤ w, pick new random starting guesses for v and w between 1.0 and 11.0. Repeat until the optimisation converges with v > w.
-    while Optim.converged(solution) == false || v <= w
-        initial = sort(rand(2), rev=true) .* 4.0 .+ 1.0
-        solution = Optim.optimize(
-            Optim.OnceDifferentiable(f, initial; autodiff = :forward),
-            lower,
-            upper,
-            initial,
-            Fminbox(BFGS()),
-        )
-        v, w = Optim.minimizer(solution)
-    end
-
     # Return variational parameters that minimise the free energy.
     return v, w
 end
 
-"Multiple branch variation"
+"""
+multi_variation(T::Float64, ϵ_optic::Float64, m_eff::Float64, volume::Float64, freqs_and_ir_activity::Matrix{Float64}; initial_vw::{Bool, Array{Float64}(undef, 1)}, N::Integer)
 
-function multi_variation(T, ϵ_optic, m_eff, volume, freqs_and_ir_activity; N = 1) # N number of v and w params
+    Minimises the multiple phonon mode free energy function for a set of v_p and w_p variational parameters.
+    The variational parameters follow the inequality: v_1 > w_1 > v_2 > w_2 > ... > v_N > w_N.
 
-    setprecision(BigFloat, 32) # Speed up. Stops potential overflows.
+     - T is the environment temperature in kelvin (K).
+     - ϵ_optic is the optical dielectric constant of the material.
+     - m_eff is the band mass of the electron (in units of electron mass m_e) .
+     - volume is the volume of the unit cell of the material in m^3.
+     - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
+     - initial_vw determines if the function should start with a random initial set of variational parameters (Bool input) or a given set of variational parameter values (one dimensional array).
+     - N specifies the number of variational parameter pairs, v_p and w_p, to use in minimising the free energy.
+"""
+function multi_variation(T, ϵ_optic, m_eff, volume, freqs_and_ir_activity; initial_vw = false, N = 1) # N number of v and w params
 
-    # Number of phonon branches.
-    M = length(freqs_and_ir_activity[:, 1])
+    # Speed up. Stops potential overflows.
+    setprecision(BigFloat, 32) 
 
-    # Initialise MxN matrices for v and w parameters. M is number of phonon branches. N is number of variational parameters (v & w) per branch.
-    v_params = Matrix{Float64}(undef, M, N)
-    w_params = Matrix{Float64}(undef, M, N)
+    # Use a random set of N initial v and w values.
+    if initial_vw isa Bool
 
-    # Intial guess for v and w.
-    initial = sort(rand(2 * N)) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
+		# Intial guess for v and w parameters.
+    	initial = sort(rand(2 * N)) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
+		
+		# Limits of the optimisation.
+		lower = repeat([0.1], 2 * N)
+		upper = repeat([60.0], 2 * N)
 
-    # Limits of the optimisation.
-    lower = repeat([0.1], 2 * N) 
-    upper = repeat([200.0], 2 * N)
+    # Use the N given initial v and w values.
+	else
 
-    for j in 1:M # sum over phonon branches
+		# Intial guess for v and w.
+		initial = sort(vcat(initial_vw...))
+		
+		# Limits of the optimisation.
+		lower = repeat([0.1], 2 * N)
+		upper = repeat([60.0], 2 * N)
+	end
+	
+    # Print out the initial v and w values.
+	println("Initial guess: ", initial)
 
-        # Osaka Free Energy function to minimise.
-        f(x) = multi_free_energy([x[2 * n] for n in 1:Int(N)], [x[2 * n - 1] for n in 1:Int(N)], T, ϵ_optic, m_eff, volume, freqs_and_ir_activity, j)
+	# The multiple phonon mode free energy function to minimise.
+	f(x) = multi_free_energy([x[2 * n] for n in 1:Int(N)], [x[2 * n - 1] for n in 1:Int(N)], T, ϵ_optic, m_eff, volume, freqs_and_ir_activity)
 
-        # Use Optim to optimise the free energy function w.r.t v and w.
-        solution = Optim.optimize(
-            Optim.OnceDifferentiable(f, initial; autodiff = :forward),
-            lower,
-            upper,
-            initial,
-            Fminbox(BFGS()),
-            # Optim.Options(time_limit = 10.0),
-        )
+	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
+	solution = Optim.optimize(
+		Optim.OnceDifferentiable(f, initial; autodiff = :forward),
+		lower,
+		upper,
+		initial,
+		Fminbox(LBFGS()),
+		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
+	)
 
-        # Get v and w params that minimised free energy.
-        var_params = Optim.minimizer(solution)
+	# Extract the v and w parameters that minimised the free energy.
+	var_params = Optim.minimizer(solution)
 
-        # If v ≤ w quit as negative mass.
-        # if any(sort([var_params[2 * n] for n in 1:Int(N)]) .<= sort([var_params[2 * n - 1] for n in 1:Int(N)]))
-        #     return "v_i <= w_i"
-        # end
+	# Separate the v and w parameters into one-dimensional arrays (vectors).
+	v_params = [var_params[2 * n] for n in 1:N]
+	w_params = [var_params[2 * n - 1] for n in 1:N]
 
-        # Intialise next guess of v and w to be their values for the current phonon branch. (quicker convergence)
-        initial = sort(var_params)
+	# Print the variational parameters that minimised the free energy.
+	println("Variational parameters: ", var_params)
 
-        # Update matrices for v and w parameters.
-        v_params[j, :] .= [var_params[2 * n] for n in 1:N]
-        w_params[j, :] .= [var_params[2 * n - 1] for n in 1:N]
-
-        # Show current v and w that minimise jth phonon branch.
-        println(var_params)
-    end
-
-    # Return variational parameters that minimise the free energy.
+    # Return the variational parameters that minimised the free energy.
     return v_params, w_params
 end
