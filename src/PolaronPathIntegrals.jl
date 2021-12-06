@@ -28,7 +28,7 @@ export frohlich_α, ϵ_ionic_mode, ϵ_total, effective_freqs, frohlich_α_ν
 export variation, multi_variation
 export free_energy, multi_free_energy
 export polaron_mobility
-export optical_absorption, complex_conductivity, complex_impedence
+export optical_absorption, polaron_complex_conductivity, polaron_complex_impedence
 export make_polaron
 export save_polaron
 export load_polaron
