@@ -57,7 +57,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3), " meV")
             end
 
-            for f in 1:length(Ω)# Iterate over frequencies
+            for f in 1:length(Ω) # Iterate over frequencies
 
                 if Ω[f] == 0.0 # If Ω = 0 at T = 0
 
@@ -79,11 +79,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 elseif Ω[f] > 0.0 # If Ω > 0 at T = 0
 
                     # Evaluate AC mobilities.
-                    Z_f = complex_impedence(Ω[f], α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z_f = polaron_complex_impedence(Ω[f], β[t], α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
                     Z[f, t] = Z_f
 
                     # Evaluate optical absorptions.
-                    σ_f = complex_conductivity(Ω[f], α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ_f = polaron_complex_conductivity(Ω[f], β[t], α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
                     σ[f, t] = σ_f
 
                     # Broadcast data.
@@ -134,11 +134,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 if Ω[f] == 0.0 # If Ω = 0 at T > 0
 
                     # Evaluate DC mobility.
-                    Z_f = complex_impedence_dc(β_t, α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z_f = polaron_complex_impedence(Ω[f], β[t], α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
                     Z[f, t] = Z_f
 
                     # Evaluate DC optical absorption. 
-                    σ_f = complex_conductivity_dc(β_t, α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ_f = polaron_complex_conductivity(Ω[f], β[t], α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
                     σ[f, t] = σ_f
 
                     # Broadcast data.
@@ -151,11 +151,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
 
                     # Evaluate AC mobilities.
-                    Z_f = complex_impedence(Ω[f], β_t, α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
+                    Z_f = polaron_complex_impedence(Ω[f], β[t], α, v_t, w_t) / eV^2 * (m_e * m_eff) / ω * 100^2
                     Z[f, t] = Z_f
 
                     # Evaluate optical absorptions.
-                    σ_f = complex_conductivity(Ω[f], β_t, α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
+                    σ_f = polaron_complex_conductivity(Ω[f], β[t], α, v_t, w_t) * eV^2 / (m_e * m_eff) * ω / 100^2
                     σ[f, t] = σ_f
 
                     # Broadcast data.
@@ -263,7 +263,7 @@ for t in 1:length(T) # Iterate over temperatures.
             elseif Ω[f] > 0.0 # If Ω > 0 at T = 0
 
                 # Evaluate AC mobilities.
-                Z_f = complex_impedence(Ω[f], α, v_t, w_t) 
+                Z_f = polaron_complex_impedence(Ω[f], Inf, α, v_t, w_t) 
                 Z[f, t] = Z_f
 
                 # Evaluate optical absorptions.
