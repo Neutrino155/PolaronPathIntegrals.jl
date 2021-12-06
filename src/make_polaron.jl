@@ -18,7 +18,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
     else
         ω = 2π .* phonon_freq
         ϵ_ionic = [ϵ_ionic_mode(i, j, volume) for (i, j) in zip(phonon_freq, ir_activity)]
-        α = [frohlich_α(ϵ_optic, i, ϵ_total, j, m_eff) for (i, j) in zip(ϵ_ionic, phonon_freq)]
+        α = [frohlich_α(ϵ_optic, i, sum(ϵ_ionic), j, m_eff) for (i, j) in zip(ϵ_ionic, phonon_freq)]
     end
 
     # Prepare empty arrays for different temperatures.
