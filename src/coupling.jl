@@ -130,7 +130,7 @@ frohlich_α_j(ϵ_optic::Float64, ϵ_ionic::Float64, ϵ_total::Float64, phonon_mo
 function frohlich_α(ϵ_optic, ϵ_ionic, ϵ_total, phonon_mode_freq, m_eff) 
 
     # The Rydberg energy unit
-    Ry = eV^4 * me / (2 * ħ^2)
+    Ry = eV^4 * m_e / (2 * ħ^2)
 
     # Angular phonon frequency for the phonon mode (rad Hz).
     ω = 2π * 1e12 * phonon_mode_freq 
