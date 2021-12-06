@@ -82,7 +82,7 @@ function polaron_memory_function_dc(β, α, v, w; rtol = 1e-3)
     S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a) taken to dc zero frequency limit.
-    integrand(x) = im * x * imag(S(x))
+    integrand(x) = -im * x * imag(S(x))
 
     # Integrate using adapative quadrature algorithm with relative error tolerance rtol.
     integral, error = quadgk(x -> integrand(x), 0.0, Inf, rtol = rtol)
