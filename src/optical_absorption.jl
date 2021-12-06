@@ -29,8 +29,8 @@ polaron_complex_impedence(Ω::Float64, β::Float64, α::Float64, v::Float64, w::
 
     Calculate the complex impedence Z(Ω) of the polaron at finite temperatures for a given frequency Ω (equation (41) in FHIP 1962 [1]). β is the thermodynamic beta. v and w are the variational polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. rtol specifies the relative error tolerance for the QuadGK integral in the memory function. 
 """
-function polaron_complex_impedence(Ω, β, α, v, w; rtol = 1e-3)
-	return -im * Ω + im * polaron_memory_function(Ω, β, α, v, w; rtol = rtol)
+function polaron_complex_impedence(Ω, β, α, v, w; ω = 0.0, rtol = 1e-3)
+	return (-im * 2π * Ω / length(ω) + im * polaron_memory_function(Ω, β, α, v, w; ω = 0.0, rtol = rtol)) ./ ω
 end
 
 """
@@ -38,8 +38,8 @@ polaron_complex_conductivity(Ω::Float64, β::Float64, α::Float64, v::Float64, 
 
     Calculate the complex conductivity σ(Ω) of the polaron at finite temperatures for a given frequency Ω (equal to 1 / Z(Ω) with Z the complex impedence). β is the thermodynamic beta. v and w are the variational polaron parameters that minimise the free energy, for the supplied α Frohlich coupling. rtol specifies the relative error tolerance for the QuadGK integral in the memory function. 
 """
-function polaron_complex_conductivity(Ω, β, α, v, w; rtol = 1e-3)
-	return 1 / polaron_complex_impedence(Ω, β, α, v, w; rtol = rtol)
+function polaron_complex_conductivity(Ω, β, α, v, w; ω = 0.0, rtol = 1e-3)
+	return 1 / polaron_complex_impedence(Ω, β, α, v, w; ω = 0.0, rtol = rtol)
 end
 
 """

@@ -97,7 +97,7 @@ polaron_memory_function(Ω::Float64, β::Float64, α::Float64, v::Float64, w::Fl
         
     Finite temperature and finite frequency memory function, including the limits to zero frequency Ω → 0 or zero temperature β → ∞.
 """
-function polaron_memory_function(Ω, β, α, v, w; rtol = 1e-3)
+function polaron_memory_function(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3)
 
     # Zero temperature and frequency is just zero.
 	if Ω == 0 && β == Inf
@@ -141,13 +141,13 @@ function multi_memory_function(Ω::Float64, β::Array{Float64}(undef, 1), α::Ar
      - w is an one-dimensional array of the w variational parameters.
      - m_eff is the is the conduction band mass of the particle (typically electron / hole, in units of electron mass m_e).
 """
-function multi_memory_function(Ω, β, α, v, w, ω, m_eff)
+function polaron_memory_function_thermal(Ω, β::Array, α::array, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1009, eqn (36).
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β, ν) = (1 - exp(1im * 2π * ν * t)) * imag(S(t, β))
+    integrand(t, β, Ω) = (1 - exp(1im * 2π * ν * t)) * imag(S(t, β))
 
     memory = 0.0
 
@@ -158,7 +158,59 @@ function multi_memory_function(Ω, β, α, v, w, ω, m_eff)
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], ν / ω[j]), 0.0, Inf)[1] / (3 * √π * 2π * ν)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π * Ω)
+    end
+
+    # Print out the value of the memory function.
+    # println("Memory function: ", memory)
+
+    return memory
+end
+
+function polaron_memory_function_athermal(Ω, α::array, v, w; ω = 1.0, rtol = 1e-3)
+
+    # FHIP1962, page 1009, eqn (36).
+    S(t) = exp(im * t) / D_j(-1im * t, v, w)^(3 / 2)
+
+    # FHIP1962, page 1009, eqn (35a).
+    integrand(t, Ω) = (1 - exp(1im * 2π * ν * t)) * imag(S(t))
+
+    memory = 0.0
+
+    # Sum over the phonon modes.
+    for j in 1:length(ω) 
+        
+        # print out the current photon frequency and phonon mode frequency (THz).
+        # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
+
+        # Add the contribution to the memory function from the `jth` phonon mode.
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π * Ω)
+    end
+
+    # Print out the value of the memory function.
+    # println("Memory function: ", memory)
+
+    return memory
+end
+
+function polaron_memory_function_dc(β::Array, α::array, v, w; ω = 1.0, rtol = 1e-3)
+
+    # FHIP1962, page 1009, eqn (36).
+    S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
+
+    # FHIP1962, page 1009, eqn (35a).
+    integrand(t, β) = -im * t * imag(S(t, β))
+
+    memory = 0.0
+
+    # Sum over the phonon modes.
+    for j in 1:length(ω) 
+        
+        # print out the current photon frequency and phonon mode frequency (THz).
+        # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
+
+        # Add the contribution to the memory function from the `jth` phonon mode.
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π)
     end
 
     # Print out the value of the memory function.
