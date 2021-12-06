@@ -11,7 +11,7 @@ polaron_memory_function_thermal(Ω::Float64, β::Float64, α::Float64, v::Float6
 
     Finite temperature and finite frequency memory function. Does not explicitly include the limits to zero frequency Ω → 0 or zero temperature β → ∞. Although, those limits can be approximated by taking Ω ⪅ O(1e-3) or β ⪆ O(100), explict and exact functions are provided.
 """
-function polaron_memory_function_thermal(Ω, β, α, v, w; rtol = 1e-3)
+function polaron_memory_function_thermal(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1011, eqn (47c).
     R = (v^2 - w^2) / (w^2 * v)  
@@ -38,7 +38,7 @@ polaron_memory_function_athermal(Ω::Float64, α::Float64, v::Float64, w::Float6
         
     Zero temperature and finite frequency memory function. Explicitly includes the limit to zero temperature β → ∞.
 """
-function polaron_memory_function_athermal(Ω, α, v, w; rtol = 1e-3)
+function polaron_memory_function_athermal(Ω, α, v, w; ω = 1.0, rtol = 1e-3)
 
 	# FHIP1962, page 1011, eqn (47c).
 	R = (v^2 - w^2) / (w^2 * v)
@@ -70,7 +70,7 @@ polaron_memory_function_dc(β::Float64, α::Float64, v::Float64, w::Float64)
         
     Zero frequency memory function. Explicitly includes the limit to zero frequency Ω → 0.
 """
-function polaron_memory_function_dc(β, α, v, w; rtol = 1e-3)
+function polaron_memory_function_dc(β, α, v, w; ω = 1.0, rtol = 1e-3)
 
     # FHIP1962, page 1011, eqn (47c).
     R = (v^2 - w^2) / (w^2 * v)
