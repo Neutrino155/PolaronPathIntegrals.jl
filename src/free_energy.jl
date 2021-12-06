@@ -177,7 +177,7 @@ B_j(α::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
      - w is an one-dimensional array of the w variational parameters.
 """
 function B_j(α, v, w)
-    B_integrand(τ) = exp(-abs(τ)) * sqrt(D_j(abs(τ), v, w)))
+    B_integrand(τ) = exp(-abs(τ)) * sqrt(D_j(abs(τ), v, w))
     B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, Inf)[1]
     return B
 end
