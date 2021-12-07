@@ -59,7 +59,7 @@ end
 
     Calculate the total ionic contribution to the dielectric function from all phonon modes.
 
-     - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
+     - freqs_and_ir_activity is a matrix containexing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
      - volume is the volume of the unit cell of the material in m^3.
 """
 function ϵ_total(freqs_and_ir_activity, volume) # total ionic contribution to dielectric
