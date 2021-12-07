@@ -121,7 +121,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0) # N number 
 		lower,
 		upper,
 		initial,
-		Fminbox(BFGS()),
+		Fminbox(LBFGS()),
 		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
 	)
 
@@ -139,7 +139,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0) # N number 
     return v_params, w_params
 end
 
-function variation(α::Array; v = 0.0, w = 0.0, ω = 0.0) # N number of v and w params
+function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0) # N number of v and w params
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
@@ -168,7 +168,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 0.0) # N number of v and w 
 		lower,
 		upper,
 		initial,
-		Fminbox(BFGS()),
+		Fminbox(LBFGS()),
 		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
 	)
 
