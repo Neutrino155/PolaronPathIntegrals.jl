@@ -146,7 +146,7 @@ D_j(τ::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
 function D_j(τ, v, w)
     D = τ
     for i in 1:length(v)
-        D += (h_i(i, v, w) / v[i]^2) * (1 - exp(-v[i] * τ) / v[i] - τ)
+        D += (h_i(i, v, w) / v[i]^2) * ((1 - exp(-v[i] * τ)) / v[i] - τ)
     end
     return D
 end
