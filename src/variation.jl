@@ -92,7 +92,7 @@ multi_variation(T::Float64, ϵ_optic::Float64, m_eff::Float64, volume::Float64, 
      - initial_vw determines if the function should start with a random initial set of variational parameters (Bool input) or a given set of variational parameter values (one dimensional array).
      - N specifies the number of variational parameter pairs, v_p and w_p, to use in minimising the free energy.
 """
-function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 0.0) # N number of v and w params
+function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0) # N number of v and w params
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
