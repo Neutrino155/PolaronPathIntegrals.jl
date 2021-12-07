@@ -105,15 +105,15 @@ function polaron_memory_function(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3)
 
     # DC zero frequency limit at finite temperatures.
 	elseif Ω == 0 && β != Inf
-		return polaron_memory_function_dc(β, α, v, w; rtol = rtol)
+		return polaron_memory_function_dc(β, α, v, w; ω = ω, rtol = rtol)
 
     # Zero temperature limit at AC finite frequencies.
 	elseif Ω != 0 && β == Inf
-		return polaron_memory_function_athermal(Ω, α, v, w; rtol = rtol)
+		return polaron_memory_function_athermal(Ω, α, v, w; ω = ω, rtol = rtol)
 
     # Finite temperatures and frequencies away from zero limits.
 	elseif Ω != 0 && β != Inf
-		return polaron_memory_function_thermal(Ω, β, α, v, w; rtol = rtol)
+		return polaron_memory_function_thermal(Ω, β, α, v, w; ω = ω, rtol = rtol)
 
     # Any other frequencies or temperatures (e.g. negative or complex) prints error message.
 	else
