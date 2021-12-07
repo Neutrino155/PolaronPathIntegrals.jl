@@ -17,10 +17,10 @@ function polaron_memory_function_thermal(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3
     R = (v^2 - w^2) / (w^2 * v)  
 
     # FHIP1962, page 1009, eqn (35c).
-    D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β * v / 2) + x^2 / β - 1im * (R * sin(v * x) + x))
+    D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β[1] * v / 2) + x^2 / β[1] - 1im * (R * sin(v * x) + x))
 
     # FHIP1962, page 1009, eqn (36).
-    S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β) - 1)) / (D(x))^(3 / 2)
+    S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
     integrand(x) = (1 - exp(1im * Ω * x)) * imag(S(x)) / Ω
@@ -76,10 +76,10 @@ function polaron_memory_function_dc(β, α, v, w; ω = 1.0, rtol = 1e-3)
     R = (v^2 - w^2) / (w^2 * v)
 
     # FHIP1962, page 1009, eqn (35c).
-    D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β * v / 2) + x^2 / β - 1im * (R * sin(v * x) + x))
+    D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β[1] * v / 2) + x^2 / β[1] - 1im * (R * sin(v * x) + x))
 
     # FHIP1962, page 1009, eqn (36).
-    S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β) - 1)) / (D(x))^(3 / 2)
+    S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a) taken to dc zero frequency limit.
     integrand(x) = -im * x * imag(S(x))
