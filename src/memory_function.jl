@@ -173,7 +173,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
     S(t) = exp(im * t) / D_j(-1im * t, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, Ω) = (1 - exp(1im * 2π * ν * t)) * imag(S(t))
+    integrand(t, Ω) = (1 - exp(1im * 2π * Ω * t)) * imag(S(t))
 
     memory = 0.0
 
