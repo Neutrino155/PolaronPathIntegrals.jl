@@ -184,7 +184,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π * Ω)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, 1e205, rtol = rtol)[1] / (3 * √π * 2π * Ω)
     end
 
     # Print out the value of the memory function.
