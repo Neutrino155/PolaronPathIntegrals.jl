@@ -58,7 +58,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             M[t] = M_t
 
             # Evaluate free energy at zero temperature. NB: Enthalpy.
-            F_t = Float64(free_energy(v_t, w_t, α; ω = ω)) * 1000 * ħ / eV
+            F_t = Float64(free_energy(v_t, w_t, α; ω = ω)) * 1000 * ħ / eV * 1e12
             F[t] = F_t
 
             # Broadcast data.
@@ -130,7 +130,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             M[t] = M_t
 
             # Evaluate free energy at finite temperature.
-            F_t = Float64(free_energy(v_t, w_t, α, β_t; ω = ω)) * 1000 * ħ / eV
+            F_t = Float64(free_energy(v_t, w_t, α, β_t; ω = ω)) * 1000 * ħ / eV * 1e12
             F[t] = F_t
 
             # Broadcast data.
