@@ -105,6 +105,10 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 0.0) # N number 
         initial = [v, w]
     end
 
+    # Limits of the optimisation.
+    lower = [0.0, 0.0]
+    upper = [Inf, Inf]
+
     # Print out the initial v and w values.
 	# println("Initial guess: ", initial)
 
