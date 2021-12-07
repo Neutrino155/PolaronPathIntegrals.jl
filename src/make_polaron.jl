@@ -22,7 +22,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
     end
 
     # Prepare empty arrays for different temperatures.
-    β = Matrix{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
+    β = Array{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
     v = Vector{Float64}(undef, N_temp) # Variational parameter v (1 / s, Hz)
     w = Vector{Float64}(undef, N_temp) # Variational parameter w (1 / s, Hz)
     κ = Vector{Float64}(undef, N_temp) # Spring constant (kg / s^2)
@@ -73,11 +73,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 if Ω[f] == 0.0 # If Ω = 0 at T = 0
 
                     # Evaluate AC mobilities. NB: Ω = 0 is DC mobility.
-                    Z_f = 0 + 1im * 0
+                    Z_f = 0.0 + 1im * 0.0
                     Z[f, t] = Z_f
 
                     # Evaluate frequency-dependent optical absorptions.
-                    σ_f = 0 + 1im * 0
+                    σ_f = 0.0 + 1im * 0.0
                     σ[f, t] = σ_f
 
                     # Broadcast data.
