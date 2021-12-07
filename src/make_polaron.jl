@@ -43,7 +43,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
         end
 
         if T[t] == 0.0 # If T = 0
-            β[t, :] = repeat(Inf, N_modes)  # set β = Inf
+            β[t, :] = repeat([Inf], N_modes)  # set β = Inf
 
             # Evaluate variational parameters.
             v_t, w_t = variation(α; v = v_t, w = w_t, ω = ω)
@@ -162,11 +162,11 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                 elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
 
                     # Evaluate AC mobilities.
-                    Z_f = polaron_complex_impedence(Ω[f], β[t], α, v_t, w_t; ω = ω) / eV^2 * (m_e * m_eff) * 100^2
+                    Z_f = polaron_complex_impedence(Ω[f], β[t, :], α, v_t, w_t; ω = ω) / eV^2 * (m_e * m_eff) * 100^2
                     Z[f, t] = Z_f
 
                     # Evaluate optical absorptions.
-                    σ_f = polaron_complex_conductivity(Ω[f], β[t], α, v_t, w_t; ω = ω) * eV^2 / (m_e * m_eff) / 100^2
+                    σ_f = polaron_complex_conductivity(Ω[f], β[t, :], α, v_t, w_t; ω = ω) * eV^2 / (m_e * m_eff) / 100^2
                     σ[f, t] = σ_f
 
                     # Broadcast data.
