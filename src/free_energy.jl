@@ -33,7 +33,7 @@ Y(x, v, β) = 1 / (1 - exp(-v * β)) * (1 + exp(-v * β) - exp(-v * x) - exp(v *
 A_integrand(x, v, w, β) =  (exp(β - x) + exp(x)) / sqrt(abs(w^2 * x * (1 - x / β) + Y(x, v, β) * (v^2 - w^2) / v))
 
 # Equation 62c in Hellwarth.
-A(v, w, α, β) = α * v / (sqrt(π) * (exp(BigFloat(β)) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, β), BigFloat(0), BigFloat(β / 2))[1]
+A(v, w, α, β) = α * v / (sqrt(π) * (exp(BigFloat(β)) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, β), BigFloat(0.0), BigFloat(β / 2))[1]
 
 # Equation 62b in Hellwarth. Equation 20 in Osaka.
 B(v, w, β) = 3 / β * (log(v / w) - 1 / 2 * log(2 * π * BigFloat(β)) - log(sinh(v * BigFloat(β) / 2) / sinh(w * BigFloat(β) / 2)))
@@ -44,9 +44,9 @@ C(v, w, β) = 3 / 4 * (v^2 - w^2) / v * (coth(v * BigFloat(β) / 2) - 2 / (v * �
 # Equation 62a in Hellwarth. In paragraph below Equation 22 in Osaka; has extra 1/β due to different definition of A, B & C.
 function free_energy(v, w, α, β; ω = 1.0)
     setprecision(BigFloat, 64)
-    a = A(v, w, α, β)
-    b = B(v, w, β)
-    c = C(v, w, β)
+    a = A(v, w, α, β[1])
+    b = B(v, w, β[1])
+    c = C(v, w, β[1])
     -(a + b + c) * ω
 end
 
