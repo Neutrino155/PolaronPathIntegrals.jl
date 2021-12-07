@@ -133,7 +133,7 @@ function frohlich_α(ϵ_optic, ϵ_ionic, ϵ_total, phonon_mode_freq, m_eff)
     Ry = eV^4 * m_e / (2 * ħ^2)
 
     # Angular phonon frequency for the phonon mode (rad Hz).
-    ω = 2π * 1e12 * phonon_mode_freq 
+    ω = 2π * phonon_mode_freq 
 
     # The static dielectric constant. Calculated here instead of inputted so that ionic modes are properly normalised.
     ϵ_static = ϵ_total + ϵ_optic
