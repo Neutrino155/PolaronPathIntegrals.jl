@@ -147,7 +147,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.
     S(t, β_j) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β_j, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β_j, Ω) = (1 - exp(1im * 2π * Ω * t)) * imag(S(t, β_j))
+    integrand(t, β_j, Ω) = (1 - exp(1im * Ω * t)) * imag(S(t, β_j))
 
     memory = 0.0
 
@@ -158,7 +158,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π * Ω)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * Ω)
     end
 
     # Print out the value of the memory function.
@@ -173,7 +173,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
     S(t) = exp(im * t) / D_j(-1im * t, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, Ω) = (1 - exp(1im * 2π * Ω * t)) * imag(S(t))
+    integrand(t, Ω) = (1 - exp(1im * Ω * t)) * imag(S(t))
 
     memory = 0.0
 
@@ -184,7 +184,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, 1e205, rtol = rtol)[1] / (3 * √π * 2π * Ω)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, 1e205, rtol = rtol)[1] / (3 * √π * Ω)
     end
 
     # Print out the value of the memory function.
