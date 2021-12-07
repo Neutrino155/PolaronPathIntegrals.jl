@@ -46,7 +46,7 @@ variation(α::Float64, β::Float64; v = 3.0, w = 2.0)
     This version uses temperature dependent action (Osaka 1959).
     Returns v, w.
 """
-function variation(α, β; v = 0.0, w = 0.0, ω = 0.0)
+function variation(α, β; v = 0.0, w = 0.0, ω = 1.0)
 
     # Intial guess for v and w.
     if v == 0.0 || w == 0.0 # Default values to start with. Generates a random float between 1.0 and 11.0
@@ -60,7 +60,7 @@ function variation(α, β; v = 0.0, w = 0.0, ω = 0.0)
     upper = [Inf, Inf]
 
     # Osaka Free Energy function to minimise.
-    f(x) = free_energy(x[1], x[2], α, β)
+    f(x) = free_energy(x[1], x[2], α, β; ω = ω)
 
     # Use Optim to optimise the free energy function w.r.t v and w.
     solution = Optim.optimize(
