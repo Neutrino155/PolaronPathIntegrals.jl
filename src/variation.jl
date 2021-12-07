@@ -7,7 +7,7 @@ variation(α::Float64; v = 7.0, w = 6.0)
     This version uses the original athermal action (Feynman 1955).
     Returns v, w.
 """
-function variation(α; v = 0.0, w = 0.0, ω = 0.0)
+function variation(α; v = 0.0, w = 0.0, ω = 1.0)
 
     # Intial guess for v and w.
     if v == 0.0 || w == 0.0 # Default values to start with. Generates a random float between 1.0 and 11.0
@@ -21,7 +21,7 @@ function variation(α; v = 0.0, w = 0.0, ω = 0.0)
     upper = [Inf, Inf]
 
     # Osaka Free Energy function to minimise.
-    f(x) = free_energy(x[1], x[2], α)
+    f(x) = free_energy(x[1], x[2], α; ω = ω)
 
     # Use Optim to optimise the free energy function w.r.t v and w.
     solution = Optim.optimize(
@@ -68,7 +68,7 @@ function variation(α, β; v = 0.0, w = 0.0, ω = 1.0)
         lower,
         upper,
         initial,
-        Fminbox(LBFGS()),
+        Fminbox(BFGS()),
     )
 
     # Get v and w values that minimise the free energy.
@@ -121,7 +121,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0) # N number 
 		lower,
 		upper,
 		initial,
-		Fminbox(LBFGS()),
+		Fminbox(BFGS()),
 		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
 	)
 
