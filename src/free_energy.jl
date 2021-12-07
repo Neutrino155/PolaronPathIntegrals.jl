@@ -162,7 +162,7 @@ B_j(α::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(und
      - w is an one-dimensional array of the w variational parameters.
 """
 function B_j(α, β, v, w)
-    B_integrand(τ) = cosh(β / 2 - abs(τ)) / (sinh(β / 2) * sqrt(D_j(abs(τ), β, v, w)))
+    B_integrand(τ) = cosh(β / 2 - abs(τ)) / (sinh(β / 2) * sqrt(abs(D_j(abs(τ), β, v, w))))
     B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, β / 2)[1]
     return B
 end
