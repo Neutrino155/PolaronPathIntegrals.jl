@@ -116,7 +116,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
             # Evaluate reduced thermodynamic beta.
             β_t = ω .* ħ / (k_B * T[t]) * 1e12
-            β[t, :] .= β_t
+            β[t, :] = β_t
 
             # Evaluate variational parameters.
             v_t, w_t = variation(α, β_t; v = v_t, w = w_t, ω = ω)
