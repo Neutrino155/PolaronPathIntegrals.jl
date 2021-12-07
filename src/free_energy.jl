@@ -8,7 +8,7 @@ http://dx.doi.org/10.1103/PhysRev.97.660
 """
 
 # Equation 31: The <|X(t) - X(s)|^{-1}> * exp(-|t-w|) effective action.
-A_integrand(x, v, w) = (w^2 * x + (v^2 - w^2) / v * (1 - exp(-v * x)))^(-0.5) * exp(-x)
+A_integrand(x, v, w) = (abs(w^2 * x + (v^2 - w^2) / v * (1 - exp(-v * x))))^(-0.5) * exp(-x)
 
 A(v, w, α) = π^(-0.5) * α * v * QuadGK.quadgk(x -> A_integrand(x, v, w), 0, Inf)[1]
 
