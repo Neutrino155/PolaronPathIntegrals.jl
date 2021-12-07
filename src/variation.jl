@@ -92,24 +92,24 @@ multi_variation(T::Float64, ϵ_optic::Float64, m_eff::Float64, volume::Float64, 
      - initial_vw determines if the function should start with a random initial set of variational parameters (Bool input) or a given set of variational parameter values (one dimensional array).
      - N specifies the number of variational parameter pairs, v_p and w_p, to use in minimising the free energy.
 """
-function variation(α_j::Array, β_j::Array; v_j = 0.0, w_j = 0.0, ω = 0.0) # N number of v and w params
+function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 0.0) # N number of v and w params
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
 
     # Use a random set of N initial v and w values.
-    if v_j == 0.0 || w_j == 0.0
+    if v == 0.0 || w == 0.0
 		# Intial guess for v and w parameters.
     	initial = sort(rand(2), rev=true) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
 	else
-        initial = [v_j, w_j]
+        initial = [v, w]
     end
 
     # Print out the initial v and w values.
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1], x[2], α_j, β_j, ω_j)
+	f(x) = free_energy(x[1], x[2], α, β, ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
@@ -135,24 +135,24 @@ function variation(α_j::Array, β_j::Array; v_j = 0.0, w_j = 0.0, ω = 0.0) # N
     return v_params, w_params
 end
 
-function variation(α_j::Array; v_j = 0.0, w_j = 0.0, ω_j = 0.0) # N number of v and w params
+function variation(α::Array; v = 0.0, w = 0.0, ω = 0.0) # N number of v and w params
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
 
     # Use a random set of N initial v and w values.
-    if v_j == 0.0 || w_j == 0.0
+    if v == 0.0 || w == 0.0
 		# Intial guess for v and w parameters.
     	initial = sort(rand(2), rev=true) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
 	else
-        initial = [v_j, w_j]
+        initial = [v, w]
     end
 
     # Print out the initial v and w values.
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1], x[2], α_j, ω_j)
+	f(x) = free_energy(x[1], x[2], α, ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
