@@ -147,7 +147,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β, Ω) = (1 - exp(1im * 2π * ν * t)) * imag(S(t, β))
+    integrand(t, β, Ω) = (1 - exp(1im * 2π * Ω * t)) * imag(S(t, β))
 
     memory = 0.0
 
