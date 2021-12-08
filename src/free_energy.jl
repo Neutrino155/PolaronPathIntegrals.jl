@@ -270,7 +270,7 @@ function A_j(v, w, n)
     for i in 1:length(v)
         s += v[i] - w[i]
     end
-    return -3 * s / (2 * n)
+    return 3 * s / (2 * n)
 end
 
 """
