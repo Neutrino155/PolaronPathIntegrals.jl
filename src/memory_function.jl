@@ -13,6 +13,8 @@ polaron_memory_function_thermal(Ω::Float64, β::Float64, α::Float64, v::Float6
 """
 function polaron_memory_function_thermal(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3)
 
+    println("THIS IS WHAT OMEGA IS:", ω)
+
     # FHIP1962, page 1011, eqn (47c).
     R = (v^2 - w^2) / (w^2 * v)  
 
@@ -23,10 +25,10 @@ function polaron_memory_function_thermal(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3
     S(x) = 2 * α / (3 * √π * 2π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(x) = (1 - exp(1im * Ω * 2π * x / ω[1])) * imag(S(x)) / Ω
+    integrand(x) = (1 - exp(1im * Ω * 2π * x / ω)) * imag(S(x)) / Ω
 
     # Integrate using adapative quadrature algorithm with relative error tolerance rtol.
-    integral, error = ω[1]^2 * quadgk(x -> integrand(x), 0.0, Inf, rtol = rtol)
+    integral, error = ω^2 * quadgk(x -> integrand(x), 0.0, Inf, rtol = rtol)
 
     return integral
 end
@@ -50,10 +52,10 @@ function polaron_memory_function_athermal(Ω, α, v, w; ω = 1.0, rtol = 1e-3)
 	S(x) = 2 * α / (3 * √π * 2π) * (exp(1im * x)) / (D(x))^(3 / 2)
 
 	# FHIP1962, page 1009, eqn (35a) taken to athermal limit.
-	integrand(x) = (1 - exp(1im * Ω * 2π * x / ω[1])) * imag(S(x)) / Ω
+	integrand(x) = (1 - exp(1im * Ω * 2π * x / ω)) * imag(S(x)) / Ω
 
     # Integrand is an exponentially decaying oscillation. Provide an upper cut-off to the integral to ensure convergence. Using Inf results in a NaN. This mimics having a finite sum in the correspond hypergeometric function expansion for the integral.
-	integral, error = ω[1]^2 * quadgk(x -> integrand(x), 0.0, 1e205, rtol = rtol) # 
+	integral, error = ω^2 * quadgk(x -> integrand(x), 0.0, 1e205, rtol = rtol) # 
 
     # When the frequency Ω ≤ 0 the imaginary part of the memory function is zero. This corresponds to no phonon emission below the phonon frequency of the longitudinal optical mode ω_LO.
 	if Ω <= 1
@@ -82,7 +84,7 @@ function polaron_memory_function_dc(β, α, v, w; ω = 1.0, rtol = 1e-3)
     S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a) taken to dc zero frequency limit.
-    integrand(x) = -im * x * imag(S(x)) / ω[1]
+    integrand(x) = -im * x * imag(S(x)) / ω
 
     # Integrate using adapative quadrature algorithm with relative error tolerance rtol.
     integral, error = quadgk(x -> integrand(x), 0.0, Inf, rtol = rtol)
