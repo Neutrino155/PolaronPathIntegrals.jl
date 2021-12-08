@@ -20,10 +20,10 @@ function polaron_memory_function_thermal(Ω, β, α, v, w; ω = 1.0, rtol = 1e-3
     D(x) = w^2 / v^2 * (R * (1 - cos(v * x)) * coth(β[1] * v / 2) + x^2 / β[1] - 1im * (R * sin(v * x) + x))
 
     # FHIP1962, page 1009, eqn (36).
-    S(x) = 2 * α / (3 * √π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
+    S(x) = 2 * α / (3 * √π * 2π) * (exp(1im * x) + 2 * cos(x) / (exp(β[1]) - 1)) / (D(x))^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(x) = (1 - exp(1im * Ω * x)) * imag(S(x)) / Ω
+    integrand(x) = (1 - exp(1im * Ω * 2π * x)) * imag(S(x)) / Ω
 
     # Integrate using adapative quadrature algorithm with relative error tolerance rtol.
     integral, error = quadgk(x -> integrand(x), 0.0, Inf, rtol = rtol)
@@ -47,10 +47,10 @@ function polaron_memory_function_athermal(Ω, α, v, w; ω = 1.0, rtol = 1e-3)
 	D(x) = w^2 / v^2 * (R * (1 - exp(im * v * x)) - 1im * x)
 
 	# FHIP1962, page 1009, eqn (36) taken to athermal limit.
-	S(x) = 2 * α / (3 * √π) * (exp(1im * x)) / (D(x))^(3 / 2)
+	S(x) = 2 * α / (3 * √π * 2π) * (exp(1im * x)) / (D(x))^(3 / 2)
 
 	# FHIP1962, page 1009, eqn (35a) taken to athermal limit.
-	integrand(x) = (1 - exp(1im * Ω * x)) * imag(S(x)) / Ω
+	integrand(x) = (1 - exp(1im * Ω * 2π * x)) * imag(S(x)) / Ω
 
     # Integrand is an exponentially decaying oscillation. Provide an upper cut-off to the integral to ensure convergence. Using Inf results in a NaN. This mimics having a finite sum in the correspond hypergeometric function expansion for the integral.
 	integral, error = quadgk(x -> integrand(x), 0.0, 1e205, rtol = rtol) # 
@@ -147,7 +147,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β, Ω) = (1 - exp(1im * Ω * t)) * imag(S(t, β))
+    integrand(t, β, Ω) = (1 - exp(1im * Ω * 2π * t)) * imag(S(t, β))
 
     memory = 0.0
 
@@ -158,7 +158,7 @@ function polaron_memory_function_thermal(Ω, β::Array, α::Array, v, w; ω = 1.
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * Ω)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j], Ω / ω[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * Ω * 2π)
     end
 
     # Print out the value of the memory function.
@@ -173,7 +173,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
     S(t) = exp(im * t) / D_j(-1im * t, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, Ω) = (1 - exp(1im * Ω * t)) * imag(S(t))
+    integrand(t, Ω) = (1 - exp(1im * 2π * Ω * t)) * imag(S(t))
 
     memory = 0.0
 
@@ -184,7 +184,7 @@ function polaron_memory_function_athermal(Ω, α::Array, v, w; ω = 1.0, rtol = 
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, 1e205, rtol = rtol)[1] / (3 * √π * Ω)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, Ω / ω[j]), 0.0, 1e205, rtol = rtol)[1] / (3 * √π * Ω * 2π)
     end
 
     # Print out the value of the memory function.
@@ -199,7 +199,7 @@ function polaron_memory_function_dc(β::Array, α::Array, v, w; ω = 1.0, rtol =
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β) = -im * t * imag(S(t, β))
+    integrand(t, β) = -im * t * 2π * imag(S(t, β))
 
     memory = 0.0
 
@@ -210,7 +210,7 @@ function polaron_memory_function_dc(β::Array, α::Array, v, w; ω = 1.0, rtol =
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π)
+        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π)
     end
 
     # Print out the value of the memory function.
