@@ -28,7 +28,7 @@ plot_polaron(polaron::Polaron; N::Int)
     returns plots: all_plots, μ_Ω, μ_T, Γ_Ω, Γ_T, κ_T, M_T, vw_T, F_T
 """
 
-function plot_polaron(polaron; N = 6)
+function plot_polaron(polaron; N = 6, ylims = [(0.0, 1.0), (0.0, 50.0)])
 
     # Extract polaron data.
     α = polaron.α # Alpha parameter
@@ -44,14 +44,14 @@ function plot_polaron(polaron; N = 6)
     σ = polaron.σ # Optical absorptions
 
     # Plot Mobility versus Frequency for N different Temperatures. 
-    σ_Ω = Plots.plot(Ω, [real(σ[:, i]) for i in 1:Int(floor(length(T)/(N))):length(T)], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N))):end]...), title = "Conductivity σ(Ω)", xlabel = "Ω / ω", ylabel = "σ(Ω)", legend = true, minorgrid = true, linewidth = 1.8, xtickfontsize = 15, ytickfontsize = 15, xguidefontsize = 15, yguidefontsize = 15, legendfontsize = 15, thickness_scaling = 1.5, size = (600, 600), linestyle  = :solid)
+    σ_Ω = Plots.plot(Ω, [real(σ[:, i]) for i in 1:Int(floor(length(T)/(N))):length(T)], label = hcat(["T = $i" for i in T][1:Int(floor(length(T)/(N))):end]...), title = "Conductivity σ(Ω)", xlabel = "Ω / ω", ylabel = "σ(Ω)", legend = true, minorgrid = true, linewidth = 1.8, xtickfontsize = 15, ytickfontsize = 15, xguidefontsize = 15, yguidefontsize = 15, legendfontsize = 15, thickness_scaling = 1.5, size = (600, 600), linestyle  = :solid, ylims = ylims[1])
     cur_colors = theme_palette(:default)
     for i in 1:Int(floor(length(T)/(N))):length(T)
         Plots.plot!(σ_Ω, Ω, imag(σ[:, i]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(T)/(N))))÷Int(floor(length(T)/(N)))])
     end
 
     # Plot Mobility versus Temperature for N different Frequencies.
-    σ_T = Plots.plot(T, [real.(σ[i, :]) for i in 1:Int(floor(length(Ω)/(N))):length(Ω)], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N))):end]...), title = "Conductivity σ(T)",  xlabel = "T / ω", ylabel = "σ(T)", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600))
+    σ_T = Plots.plot(T, [real.(σ[i, :]) for i in 1:Int(floor(length(Ω)/(N))):length(Ω)], label = hcat(["Ω = $i" for i in Ω][1:Int(floor(length(Ω)/(N))):end]...), title = "Conductivity σ(T)",  xlabel = "T / ω", ylabel = "σ(T)", legend = true, minorgrid = true, linewidth = 1.5, xtickfontsize = 10, ytickfontsize = 10, xguidefontsize = 10, yguidefontsize = 10, legendfontsize = 8, thickness_scaling = 1.2, size = (600, 600), ylims = ylims[2])
     cur_colors = theme_palette(:default)
     for i in 1:Int(floor(length(Ω)/(N))):length(Ω)
         Plots.plot!(σ_T, T, imag(σ[i, :]), label = false, linestyle = :dash, color = cur_colors[Int(i-1+Int(floor(length(Ω)/(N))))÷Int(floor(length(Ω)/(N)))])
