@@ -199,7 +199,7 @@ function polaron_memory_function_dc(β::Array, α::Array, v, w; ω = 1.0, rtol =
     S(t, β) = cos(t - 1im * β / 2) / sinh(β / 2) / D_j(-1im * t, β, v, w)^(3 / 2)
 
     # FHIP1962, page 1009, eqn (35a).
-    integrand(t, β) = -im * t * 2π * imag(S(t, β))
+    integrand(t, β) = -im * t * imag(S(t, β))
 
     memory = 0.0
 
@@ -210,7 +210,7 @@ function polaron_memory_function_dc(β::Array, α::Array, v, w; ω = 1.0, rtol =
         # println("Photon frequency = $ν, Phonon mode frequency = $(ω[j] / 2π)")
 
         # Add the contribution to the memory function from the `jth` phonon mode.
-        memory += 2 * α[j] * ω[j]^2 * quadgk(t -> integrand(t, β[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π * 2π)
+        memory += 2 * α[j] * ω[j] * quadgk(t -> integrand(t, β[j]), 0.0, Inf, rtol = rtol)[1] / (3 * √π)
     end
 
     # Print out the value of the memory function.
