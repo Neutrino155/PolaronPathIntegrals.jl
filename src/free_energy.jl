@@ -176,8 +176,8 @@ B_j(α::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function B_j(α, v, w)
-    B_integrand(τ) = exp(-abs(τ)) * sqrt(abs(D_j(abs(τ), v, w)))
+function B_j(α, v, w; ω = 1)
+    B_integrand(τ) = exp(-abs(τ * ω)) * sqrt(abs(D_j(abs(τ), v, w)))
     B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, Inf)[1]
     return B
 end
@@ -270,7 +270,7 @@ function A_j(v, w, n)
     for i in 1:length(v)
         s += v[i] - w[i]
     end
-    return 3 * s / (2 * n)
+    return -3 * s / (2 * n)
 end
 
 """
@@ -340,7 +340,7 @@ function free_energy(v, w, α::Array; ω = 1.0)
 	for j in 1:num_of_branches
 
         # Add contribution to the total free energy from the phonon mode.
-		F += -(B_j(α[j], v, w) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
+		F += -(B_j(α[j], v, w; ω = ω[j]) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
         
         # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
         # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
