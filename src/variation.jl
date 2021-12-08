@@ -126,17 +126,17 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0) # N number 
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
-	var_params = Optim.minimizer(solution)
+	v, w = Optim.minimizer(solution)
 
 	# Separate the v and w parameters into one-dimensional arrays (vectors).
-	v_params = var_params[2]
-	w_params = var_params[1]
+	# v_params = var_params[2]
+	# w_params = var_params[1]
 
 	# Print the variational parameters that minimised the free energy.
 	# println("Variational parameters: ", var_params)
 
     # Return the variational parameters that minimised the free energy.
-    return v_params, w_params
+    return v, w
 end
 
 function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0) # N number of v and w params
@@ -173,15 +173,15 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0) # N number of v and w 
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
-	var_params = Optim.minimizer(solution)
+	v, w = Optim.minimizer(solution)
 
 	# Separate the v and w parameters into one-dimensional arrays (vectors).
-	v_params = var_params[2]
-	w_params = var_params[1]
+	# v_params = var_params[2]
+	# w_params = var_params[1]
 
 	# Print the variational parameters that minimised the free energy.
 	# println("Variational parameters: ", var_params)
 
     # Return the variational parameters that minimised the free energy.
-    return v_params, w_params
+    return v, w
 end
