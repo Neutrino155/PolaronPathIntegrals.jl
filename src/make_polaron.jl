@@ -173,7 +173,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     if verbose
                         println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
                         println("\e[2K", "AC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " Vs/cm^2")
                     end
                 end
 
@@ -257,11 +257,11 @@ for t in 1:length(T) # Iterate over temperatures.
             if Ω[f] == 0.0 # If Ω = 0 at T = 0
 
                 # Evaluate DC mobilities. NB: Ω = 0 is DC mobility.
-                Z_f = 0 + 1im * 0
+                Z_f = 0.0 + 1im * 0.0
                 Z[f, t] = Z_f
 
                 # Evaluate frequency-dependent optical absorptions.
-                σ_f = 0 + 1im * 0
+                σ_f = Inf + 1im * 0.0
                 σ[f, t] = σ_f
 
                 # Broadcast data.
@@ -278,7 +278,7 @@ for t in 1:length(T) # Iterate over temperatures.
                 Z[f, t] = Z_f
 
                 # Evaluate optical absorptions.
-                σ_f = complex_conductivity(Ω[f], α, v_t, w_t)
+                σ_f = polaron_complex_conductivity(Ω[f], Inf, α, v_t, w_t)
                 σ[f, t] = σ_f
 
                 # Broadcast data.
@@ -329,11 +329,11 @@ for t in 1:length(T) # Iterate over temperatures.
             if Ω[f] == 0.0 # If Ω = 0 at T > 0
 
                 # Evaluate DC mobility.
-                Z_f = complex_impedence_dc(β_t, α, v_t, w_t)
+                Z_f = polaron_complex_impedence(β_t, α, v_t, w_t)
                 Z[f, t] = Z_f
 
                 # Evaluate DC optical absorption. 
-                σ_f = complex_conductivity_dc(β_t, α, v_t, w_t)
+                σ_f = polaron_complex_conductivity_(β_t, α, v_t, w_t)
                 σ[f, t] = σ_f
 
                 # Broadcast data.
