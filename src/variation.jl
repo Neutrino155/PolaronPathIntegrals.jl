@@ -118,12 +118,12 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
-		Optim.OnceDifferentiable(f, initial; autodiff = :forward),
+		f,
 		lower,
 		upper,
 		initial,
 		SAMIN(),
-		Optim.Options(f_reltol = 1e-3, x_reltol = 1e-3, show_trace = true, show_every = 50), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(show_trace = true, show_every = 50), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
