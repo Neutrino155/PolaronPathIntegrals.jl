@@ -77,7 +77,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     Z[f, t] = Z_f
 
                     # Evaluate frequency-dependent optical absorptions.
-                    σ_f = 0.0 + 1im * 0.0
+                    σ_f = Inf + 1im * 0.0
                     σ[f, t] = σ_f
 
                     # Broadcast data.
@@ -100,8 +100,8 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     # Broadcast data.
                     if verbose
                         println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
-                        println("\e[2K", "AC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "AC Impedence: ", round(Z_f, digits = 3), " Vs/cm^2")
+                        println("\e[2K", "AC Conductivity: ", round(σ_f, digits = 3), " cm^2/Vs")
                     end
                 end
 
@@ -156,7 +156,7 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
                     if verbose
                         println("\e[2K", "Working on Frequency: $(Ω[f]) Hz / $(Ω[end]) Hz")
                         println("\e[2K", "DC Impedence: ", round(Z_f, digits = 3), " cm^2/Vs")
-                        println("\e[2K", "DC Conductivity: ", round(σ_f, digits = 3), " cm^-1")
+                        println("\e[2K", "DC Conductivity: ", round(σ_f, digits = 3), " Vs/cm^2")
                     end
 
                 elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
