@@ -67,12 +67,12 @@ This section of the code is dedicated to calculating the polaron free energy, ge
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function κ_i(i, v, w)
+@noinline function κ_i(i, v, w)
     κ = v[i]^2 - w[i]^2
     if length(v) > 1
-        for j in 1:length(v)
+        @simd for j in 1:length(v)
             if j != i
-                κ *= (v[j]^2 - w[i]^2) / (w[j]^2 - w[i]^2)
+                @inbounds κ *= (v[j]^2 - w[i]^2) / (w[j]^2 - w[i]^2)
             end
         end
     end
@@ -88,12 +88,12 @@ h_i(i::Integer, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function h_i(i, v, w)
+@noinline function h_i(i, v, w)
     h = v[i]^2 - w[i]^2
     if length(v) > 1
-        for j in 1:length(v)
+        @simd for j in 1:length(v)
             if j != i
-                h *= (w[j]^2 - v[i]^2) / (v[j]^2 - v[i]^2)
+                @inbounds h *= (w[j]^2 - v[i]^2) / (v[j]^2 - v[i]^2)
             end
         end
     end
@@ -109,7 +109,7 @@ C_ij(i::Integer, j::Integer, v::Array{Float64}(undef, 1), w::Array{Float64}(unde
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function C_ij(i, j, v, w)
+@noinline function C_ij(i, j, v, w)
     C = w[i] * κ_i(i, v, w) * h_i(j, v, w) / (4 * (v[j]^2 - w[i]^2))
     return C
 end
@@ -124,10 +124,10 @@ D_j(τ::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(und
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function D_j(τ, β, v, w)
+@noinline function D_j(τ, β, v, w)
     D = τ * (1 - τ / β)
-    for i in 1:length(v)
-        D += (h_i(i, v, w) / v[i]^2) * (2 * sinh(v[i] * τ / 2) * sinh(v[i] * (β - τ) / 2) / (v[i] * sinh(v[i] * β / 2)) - τ * (1 - τ / β))
+    @simd for i in 1:length(v)
+        @inbounds D += (h_i(i, v, w) / v[i]^2) * (2 * sinh(v[i] * τ / 2) * sinh(v[i] * (β - τ) / 2) / (v[i] * sinh(v[i] * β / 2)) - τ * (1 - τ / β))
     end
     return D
 end
@@ -141,10 +141,10 @@ D_j(τ::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function D_j(τ, v, w)
+@noinline function D_j(τ, v, w)
     D = τ
-    for i in 1:length(v)
-        D += (h_i(i, v, w) / v[i]^2) * ((1 - exp(-v[i] * τ)) / v[i] - τ)
+    @simd for i in 1:length(v)
+        @inbounds D += (h_i(i, v, w) / v[i]^2) * ((1 - exp(-v[i] * τ)) / v[i] - τ)
     end
     return D
 end
@@ -159,7 +159,7 @@ B_j(α::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(und
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function B_j(α, β, v, w)
+@noinline function B_j(α, β, v, w)
     B_integrand(τ) = cosh(β / 2 - abs(τ)) / (sinh(β / 2) * sqrt(abs(D_j(abs(τ), β, v, w))))
     B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, β / 2)[1]
     return B
@@ -174,7 +174,7 @@ B_j(α::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1))
      - v is an one-dimensional array of the v variational parameters.
      - w is an one-dimensional array of the w variational parameters.
 """
-function B_j(α, v, w)
+@noinline function B_j(α, v, w)
     B_integrand(τ) = exp(-abs(τ)) / sqrt(abs(D_j(abs(τ), v, w)))
     B = α / √π * quadgk(τ -> B_integrand(τ), 0.0, Inf)[1]
     return B
@@ -190,17 +190,14 @@ C_j(β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Fl
      - w is an one-dimensional array of the w variational parameters.
      - n is the total number of phonon modes.
 """
-function C_j(β, v, w, n)
-
+@noinline function C_j(β, v, w, n)
     s = 0.0
-
     # Sum over the contributions from each fictitious mass.
-    for i in 1:length(v)
-        for j in 1:length(v)
-            s += C_ij(i, j, v, w) / (v[j] * w[i]) * (coth(β * v[j] / 2)  - 2 / (β * v[j]))
+    @simd for i in 1:length(v)
+        @simd for j in 1:length(v)
+            @inbounds s += C_ij(i, j, v, w) / (v[j] * w[i]) * (coth(β * v[j] / 2)  - 2 / (β * v[j]))
         end
     end
-
     # Divide by the number of phonon modes to give an average contribution per phonon mode.
     return 3 * s / n
 end
@@ -214,17 +211,14 @@ C_j(v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Float64)
      - w is an one-dimensional array of the w variational parameters.
      - n is the total number of phonon modes.
 """
-function C_j(v, w, n)
-
+@noinline function C_j(v, w, n)
     s = 0.0
-
     # Sum over the contributions from each fictitious mass.
-    for i in 1:length(v)
-        for j in 1:length(v)
-            s += C_ij(i, j, v, w) / (v[j] * w[i])
+    @simd for i in 1:length(v)
+        @simd for j in 1:length(v)
+            @inbounds s += C_ij(i, j, v, w) / (v[j] * w[i])
         end
     end
-
     # Divide by the number of phonon modes to give an average contribution per phonon mode.
     return 3 * s / n
 end
@@ -239,17 +233,14 @@ A_j(β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Fl
      - w is an one-dimensional array of the w variational parameters.
      - n is the total number of phonon modes.
 """
-function A_j(β, v, w, n)
-
+@noinline function A_j(β, v, w, n)
     s = -log(2π * β) / 2
-
     # Sum over the contributions from each fictitious mass.
-    for i in 1:length(v)
+    @simd for i in 1:length(v)
         if v[i] != w[i]
-            s += log(v[i] / w[i]) - log(sinh(v[i] * β / 2) / sinh(w[i] * β / 2))
+            @inbounds s += log(v[i] / w[i]) - log(sinh(v[i] * β / 2) / sinh(w[i] * β / 2))
         end
     end
-
     # Divide by the number of phonon modes to give an average contribution per phonon mode.
     3 / β * s / n
 end
@@ -263,10 +254,10 @@ A_j(v::Array{Float64}(undef, 1), w::Array{Float64}(undef, 1), n::Float64)
      - w is an one-dimensional array of the w variational parameters.
      - n is the total number of phonon modes.
 """
-function A_j(v, w, n)
+@noinline function A_j(v, w, n)
     s = 0.0
-    for i in 1:length(v)
-        s += v[i] - w[i]
+    @simd for i in 1:length(v)
+        @inbounds s += v[i] - w[i]
     end
     return -3 * s / (2 * n)
 end
@@ -284,7 +275,7 @@ free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 
      - volume is the volume of the unit cell of the material in m^3.
      - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
 """
-function free_energy(v, w, α::Array, β::Array; ω = 1.0)
+@noinline function free_energy(v, w, α::Array, β::Array; ω = 1.0)
 
     # Total number of phonon modes / branches.
     num_of_modes = length(ω)
@@ -292,10 +283,10 @@ function free_energy(v, w, α::Array, β::Array; ω = 1.0)
     F = 0.0
 
     # Sum over the phonon modes.
-	for j in 1:num_of_modes
+	@simd for j in 1:num_of_modes
 
         # Add contribution to the total free energy from the phonon mode.
-		F += -(B_j(α[j], β[j], v, w) + C_j(β[j], v, w, num_of_modes) + A_j(β[j], v, w, num_of_modes)) * ω[j]
+		@inbounds F += -(B_j(α[j], β[j], v, w) + C_j(β[j], v, w, num_of_modes) + A_j(β[j], v, w, num_of_modes)) * ω[j]
         
         # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
         # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
@@ -321,7 +312,7 @@ free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 
      - volume is the volume of the unit cell of the material in m^3.
      - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
 """
-function free_energy(v, w, α::Array; ω = 1.0)
+@noinline function free_energy(v, w, α::Array; ω = 1.0)
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
@@ -332,10 +323,10 @@ function free_energy(v, w, α::Array; ω = 1.0)
     F = 0.0
 
     # Sum over the phonon modes.
-	for j in 1:num_of_branches
+	@simd for j in 1:num_of_branches
 
         # Add contribution to the total free energy from the phonon mode.
-		F += -(B_j(α[j], v, w) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
+		@inbounds F += -(B_j(α[j], v, w) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
         
         # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
         # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
