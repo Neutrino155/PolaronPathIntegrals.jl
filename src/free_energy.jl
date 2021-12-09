@@ -340,7 +340,7 @@ function free_energy(v, w, α::Array; ω = 1.0)
 	for j in 1:num_of_branches
 
         # Add contribution to the total free energy from the phonon mode.
-		F += -(B_j(α[j], v, w; ω = ω[j]) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
+		F += -(B_j(α[j], v, w) + C_j(v, w, num_of_branches) + A_j(v, w, num_of_branches)) * ω[j]
         
         # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
         # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
