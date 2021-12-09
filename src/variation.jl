@@ -114,7 +114,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1:N], x[(N + 1):2 * N], α, β; ω = ω)
+	f(x) = free_energy([x[2 * n - 1] for n in 1:N], [x[2 * n] for n in 1:N], α, β; ω = ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
@@ -127,11 +127,11 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
-	var_params = Optim.minimizer(solution)
+	var_params = sort(Optim.minimizer(solution), rev = true)
 
 	# Separate the v and w parameters into one-dimensional arrays (vectors).
-	v = var_params[2:2:2*N]
-	w = var_params[1:2:2*N]
+	v = [var_params[2 * n - 1] for n in 1:N]
+	w = [var_params[2 * n] for n in 1:N]
 
 	# Print the variational parameters that minimised the free energy.
 	# println("Variational parameters: ", var_params)
@@ -149,7 +149,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 20) # N num
     # Use a random set of N initial v and w values.
     if v == 0.0 || w == 0.0
 		# Intial guess for v and w parameters.
-    	initial = sort(rand(2 * N), rev=true) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
+    	initial = sort(rand(2 * N), rev = true) .* 4.0 .+ 1.0 # initial guess around 4 and ≥ 1.
 	else
         initial = vcat(v, w)
     end
@@ -162,7 +162,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 20) # N num
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1:N], x[(N + 1):2 * N], α; ω = ω)
+	f(x) = free_energy([x[2 * n - 1] for n in 1:N], [x[2 * n] for n in 1:N], α; ω = ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
@@ -175,11 +175,11 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 20) # N num
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
-	var_params = Optim.minimizer(solution)
+	var_params = sort(Optim.minimizer(solution), rev = true)
 
 	# Separate the v and w parameters into one-dimensional arrays (vectors).
-	v = var_params[2:2:2*N]
-	w = var_params[1:2:2*N]
+	v = [var_params[2 * n - 1] for n in 1:N]
+	w = [var_params[2 * n] for n in 1:N]
 
 	# Print the variational parameters that minimised the free energy.
 	# println("Variational parameters: ", var_params)
