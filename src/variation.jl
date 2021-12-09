@@ -114,7 +114,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1:N], x[(N + 1):2 * N], α, β; ω = ω)
+	f(x) = free_energy([x[2 * n - 1] for n in 1:N], [x[2 * n] for n in 1:N], α, β; ω = ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
@@ -162,7 +162,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 10) # N num
 	# println("Initial guess: ", initial)
 
 	# The multiple phonon mode free energy function to minimise.
-	f(x) = free_energy(x[1:N], x[(N + 1):2 * N], α; ω = ω)
+	f(x) = free_energy([x[2 * n - 1] for n in 1:N], [x[2 * n] for n in 1:N], α; ω = ω)
 
 	# Use Optim to optimise the free energy function w.r.t the set of v and w parameters.
 	solution = Optim.optimize(
