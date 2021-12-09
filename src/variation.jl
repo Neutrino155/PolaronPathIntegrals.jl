@@ -123,7 +123,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 		upper,
 		initial,
 		Fminbox(LBFGS()),
-		Optim.Options(rel_tol = 1e-3), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(f_reltol = 1e-3), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
@@ -171,7 +171,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 20) # N num
 		upper,
 		initial,
 		Fminbox(LBFGS()),
-		Optim.Options(rel_tol = 1e-3), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(f_reltol = 1e-3), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
