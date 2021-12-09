@@ -156,7 +156,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 20) # N num
 
     # Limits of the optimisation.
     lower = fill(0.0, 2 * N)
-    upper = fill(Inf, 2 * N)
+    upper = fill(100.0, 2 * N)
 
     # Print out the initial v and w values.
 	# println("Initial guess: ", initial)
