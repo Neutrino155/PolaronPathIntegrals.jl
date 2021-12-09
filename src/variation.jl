@@ -92,7 +92,7 @@ multi_variation(T::Float64, ϵ_optic::Float64, m_eff::Float64, volume::Float64, 
      - initial_vw determines if the function should start with a random initial set of variational parameters (Bool input) or a given set of variational parameter values (one dimensional array).
      - N specifies the number of variational parameter pairs, v_p and w_p, to use in minimising the free energy.
 """
-function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1) # N number of v and w params
+function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 10.0) # N number of v and w params
 
     if N != length(v) != length(w)
         return error("The number of variational parameters v & w must be equal to N.")
@@ -123,7 +123,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1) # N 
 		upper,
 		initial,
 		Fminbox(BFGS()),
-		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(time_limit = T), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
