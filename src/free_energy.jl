@@ -127,9 +127,7 @@ D_j(τ::Float64, β::Float64, v::Array{Float64}(undef, 1), w::Array{Float64}(und
 function D_j(τ, β, v, w)
     D = τ * (1 - τ / β)
     for i in 1:length(v)
-        if v[i] != w[i]
         D += (h_i(i, v, w) / v[i]^2) * (2 * sinh(v[i] * τ / 2) * sinh(v[i] * (β - τ) / 2) / (v[i] * sinh(v[i] * β / 2)) - τ * (1 - τ / β))
-        end
     end
     return D
 end
