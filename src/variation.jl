@@ -140,7 +140,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
     return v, w
 end
 
-function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1) # N number of v and w params
+function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 10) # N number of v and w params
  
     if N != length(v) != length(w)
         return error("The number of variational parameters v & w must be equal to N.")
@@ -171,7 +171,7 @@ function variation(α::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1) # N number of v
 		upper,
 		initial,
 		Fminbox(BFGS()),
-		# Optim.Options(time_limit = 20.0), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(time_limit = T), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
