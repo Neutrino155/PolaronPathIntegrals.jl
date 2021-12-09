@@ -127,7 +127,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
-	var_params = Optim.minimizer(solution)
+	var_params = sort(Optim.minimizer(solution), rev = true)
 
 	# Separate the v and w parameters into one-dimensional arrays (vectors).
 	v = [var_params[2 * n - 1] for n in 1:N]
