@@ -288,19 +288,16 @@ free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 
 """
 function free_energy(v, w, α::Array, β::Array; ω = 1.0)
 
-    # Speed up. Stops potential overflows.
-    setprecision(BigFloat, 32) 
-
     # Total number of phonon modes / branches.
-    num_of_branches = length(ω)
+    num_of_modes = length(ω)
 
     F = 0.0
 
     # Sum over the phonon modes.
-	for j in 1:num_of_branches
+	for j in 1:num_of_modes
 
         # Add contribution to the total free energy from the phonon mode.
-		F += -(B_j(α[j], β[j], v, w) + C_j(β[j], v, w, num_of_branches) + A_j(β[j], v, w, num_of_branches)) * ω[j]
+		F += -(B_j(α[j], β[j], v, w) + C_j(β[j], v, w, num_of_modes) + A_j(β[j], v, w, num_of_modes)) * ω[j]
         
         # Prints out the frequency, reduced thermodynamic temperature, ionic dielectric and partial coupling for the phonon mode.
         # println("Free energy: Phonon freq = ", phonon_freqs[j], " | β = ", β_j, " | ϵ_ionic = ", ϵ_ionic_j, " | α_j = ", α_j)
