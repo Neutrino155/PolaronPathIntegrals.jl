@@ -23,10 +23,10 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
     # Prepare empty arrays for different temperatures.
     β = Matrix{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
-    v = Vector{Float64}(undef, N_temp, N_params) # Variational parameter v (1 / s, Hz)
-    w = Vector{Float64}(undef, N_temp, N_params) # Variational parameter w (1 / s, Hz)
-    κ = Vector{Float64}(undef, N_temp, N_params) # Spring constant (kg / s^2)
-    M = Vector{Float64}(undef, N_temp, N_params) # Fictitious mass (kg)
+    v = Matrix{Float64}(undef, N_temp, N_params) # Variational parameter v (1 / s, Hz)
+    w = Matrix{Float64}(undef, N_temp, N_params) # Variational parameter w (1 / s, Hz)
+    κ = Matrix{Float64}(undef, N_temp, N_params) # Spring constant (kg / s^2)
+    M = Matrix{Float64}(undef, N_temp, N_params) # Fictitious mass (kg)
     F = Vector{Float64}(undef, N_temp) # Free energy (meV)
     Z = Matrix{ComplexF64}(undef, N_freq, N_temp) # Complex impedence (cm^2 / Vs)
     σ = Matrix{ComplexF64}(undef, N_freq, N_temp) # Complex conductivity (1 / cm)
