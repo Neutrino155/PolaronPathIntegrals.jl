@@ -23,10 +23,10 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
     # Prepare empty arrays for different temperatures.
     β = Matrix{Float64}(undef, N_temp, N_modes) # Reduced thermodynamic beta (unitless)
-    v = Vector{Float64}(undef, N_temp) # Variational parameter v (1 / s, Hz)
-    w = Vector{Float64}(undef, N_temp) # Variational parameter w (1 / s, Hz)
-    κ = Vector{Float64}(undef, N_temp) # Spring constant (kg / s^2)
-    M = Vector{Float64}(undef, N_temp) # Fictitious mass (kg)
+    v = Vector{Float64}(undef, N_temp, N_params) # Variational parameter v (1 / s, Hz)
+    w = Vector{Float64}(undef, N_temp, N_params) # Variational parameter w (1 / s, Hz)
+    κ = Vector{Float64}(undef, N_temp, N_params) # Spring constant (kg / s^2)
+    M = Vector{Float64}(undef, N_temp, N_params) # Fictitious mass (kg)
     F = Vector{Float64}(undef, N_temp) # Free energy (meV)
     Z = Matrix{ComplexF64}(undef, N_freq, N_temp) # Complex impedence (cm^2 / Vs)
     σ = Matrix{ComplexF64}(undef, N_freq, N_temp) # Complex conductivity (1 / cm)
@@ -46,16 +46,16 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             β[t, :] = repeat([Inf], N_modes)  # set β = Inf
 
             # Evaluate variational parameters.
-            v_t, w_t = variation(α; v = v_t, w = w_t, ω = ω)
+            v_t, w_t = variation(α; v = v_t, w = w_t, ω = ω, N = N_params)
 
-            v[t] = v_t
-            w[t] = w_t
+            v[t, :] = v_t
+            w[t, :] = w_t
 
             # Evaluate fictitious particle mass and spring constant.
-            κ_t = (v_t^2 - w_t^2) # spring constant
-            M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
-            κ[t] = κ_t
-            M[t] = M_t
+            κ_t = (v_t.^2 .- w_t.^2) # spring constant
+            M_t = ((v_t.^2 .- w_t.^2) ./ w_t.^2) # mass
+            κ[t, :] = κ_t
+            M[t, :] = M_t
 
             # Evaluate free energy at zero temperature. NB: Enthalpy.
             F_t = Float64(free_energy(v_t, w_t, α; ω = ω)) * 1000 * ħ / eV * 1e12
@@ -63,8 +63,8 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
             # Broadcast data.
             if verbose
-                println("\e[2K", "α: ", round(sum(α), digits = 3), " | β: ", Inf, " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
-                println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
+                println("\e[2K", "α: ", round(sum(α), digits = 3), " | β: ", Inf, " | v: ", round.(v_t, digits = 3), " s^-1 | w: ", round.(w_t, digits = 3), " s^-1")
+                println("\e[2K", "κ: ", round.(κ_t, digits = 3), " m_e kg/s^2 | M: ", round.(M_t, digits = 3), " m_e kg")
                 println("\e[2K", "Free Energy (Enthalpy): ", round(F_t, digits = 3), " meV")
             end
 
@@ -119,15 +119,15 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
             β[t, :] = β_t
 
             # Evaluate variational parameters.
-            v_t, w_t = variation(α, β_t; v = v_t, w = w_t, ω = ω)
-            v[t] = v_t
-            w[t] = w_t
+            v_t, w_t = variation(α, β_t; v = v_t, w = w_t, ω = ω, N = N_params)
+            v[t, :] = v_t
+            w[t, :] = w_t
 
             # Evaluate fictitious particle mass and spring constant.
-            κ_t = (v_t^2 - w_t^2) # spring constant
-            M_t = ((v_t^2 - w_t^2) / w_t^2) # mass
-            κ[t] = κ_t
-            M[t] = M_t
+            κ_t = (v_t.^2 .- w_t.^2) # spring constant
+            M_t = ((v_t.^2 .- w_t.^2) ./ w_t.^2) # mass
+            κ[t, :] = κ_t
+            M[t, :] = M_t
 
             # Evaluate free energy at finite temperature.
             F_t = Float64(free_energy(v_t, w_t, α, β_t; ω = ω)) * 1000 * ħ / eV * 1e12
@@ -135,8 +135,8 @@ function make_polaron(ϵ_optic, ϵ_static, phonon_freq, m_eff; temp = 300.0, efi
 
             # Broadcast data.
             if verbose
-                println("\e[2K", "α: ", round(sum(α), digits = 3), " | β: ", round.(β_t, digits = 3), " | v: ", round(v_t, digits = 3), " s^-1 | w: ", round(w_t, digits = 3), " s^-1")
-                println("\e[2K", "κ: ", round(κ_t, digits = 3), " m_e kg/s^2 | M: ", round(M_t, digits = 3), " m_e kg")
+                println("\e[2K", "α: ", round(sum(α), digits = 3), " | β: ", round.(β_t, digits = 3), " | v: ", round.(v_t, digits = 3), " s^-1 | w: ", round.(w_t, digits = 3), " s^-1")
+                println("\e[2K", "κ: ", round.(κ_t, digits = 3), " m_e kg/s^2 | M: ", round.(M_t, digits = 3), " m_e kg")
                 println("\e[2K", "Free Energy: ", round(F_t, digits = 3), " meV")
             end
 
