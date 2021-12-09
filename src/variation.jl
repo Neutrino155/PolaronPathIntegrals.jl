@@ -123,7 +123,7 @@ function variation(α::Array, β::Array; v = 0.0, w = 0.0, ω = 1.0, N = 1, T = 
 		upper,
 		initial,
 		SAMIN(),
-		Optim.Options(show_trace = true, show_every = 50), # Set time limit for asymptotic convergence if needed.
+		Optim.Options(iterations=10^6, show_trace = true, show_every = 50), # Set time limit for asymptotic convergence if needed.
 	)
 
 	# Extract the v and w parameters that minimised the free energy.
