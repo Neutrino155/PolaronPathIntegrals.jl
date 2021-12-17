@@ -274,11 +274,11 @@ for t in 1:length(T) # Iterate over temperatures.
             elseif Ω[f] > 0.0 # If Ω > 0 at T = 0
 
                 # Evaluate AC mobilities.
-                Z_f = polaron_complex_impedence(Ω[f], Inf, α, v_t, w_t) 
+                Z_f = polaron_complex_impedence(Ω[f], Inf, α, v_t, w_t; ω = ω, rtol = 1e-3) 
                 Z[f, t] = Z_f
 
                 # Evaluate optical absorptions.
-                σ_f = polaron_complex_conductivity(Ω[f], Inf, α, v_t, w_t)
+                σ_f = polaron_complex_conductivity(Ω[f], Inf, α, v_t, w_t; ω = ω, rtol = 1e-3)
                 σ[f, t] = σ_f
 
                 # Broadcast data.
@@ -329,11 +329,11 @@ for t in 1:length(T) # Iterate over temperatures.
             if Ω[f] == 0.0 # If Ω = 0 at T > 0
 
                 # Evaluate DC mobility.
-                Z_f = polaron_complex_impedence(β_t, α, v_t, w_t)
+                Z_f = polaron_complex_impedence(0.0, β[t], α, v_t, w_t; ω = ω, rtol = 1e-3) 
                 Z[f, t] = Z_f
 
                 # Evaluate DC optical absorption. 
-                σ_f = polaron_complex_conductivity_(β_t, α, v_t, w_t)
+                σ_f = polaron_complex_conductivity(0.0, β[t], α, v_t, w_t; ω = ω, rtol = 1e-3)
                 σ[f, t] = σ_f
 
                 # Broadcast data.
@@ -346,11 +346,11 @@ for t in 1:length(T) # Iterate over temperatures.
             elseif Ω[f] > 0.0 # If Ω > 0 at T > 0
 
                 # Evaluate AC mobilities.
-                Z_f = complex_impedence(Ω[f], β_t, α, v_t, w_t)
+                Z_f = polaron_complex_impedence(Ω[f], β[t], α, v_t, w_t; ω = ω, rtol = 1e-3)
                 Z[f, t] = Z_f
 
                 # Evaluate optical absorptions.
-                σ_f = complex_conductivity(Ω[f], β_t, α, v_t, w_t)
+                σ_f = polaron_complex_conductivity(Ω[f], β[t], α, v_t, w_t; ω = ω, rtol = 1e-3)
                 σ[f, t] = σ_f
 
                 # Broadcast data.
