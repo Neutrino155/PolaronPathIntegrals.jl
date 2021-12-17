@@ -13,7 +13,7 @@ polaron_mobility(β::Float64, α::Float64, v::Float64, w::Float64; rtol = 1e-3)
 """
 
 function polaron_mobility(β, α, v, w; ω = 1.0, rtol = 1e-3)
-	return 1 / imag(polaron_memory_function_dc(β, α, v, w; rtol = rtol))
+	return 1 / imag(polaron_memory_function_dc(β, α, v, w; ω = ω, rtol = rtol))
 end
 
 """
