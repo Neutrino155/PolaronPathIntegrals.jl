@@ -8,12 +8,12 @@ http://dx.doi.org/10.1103/PhysRev.97.660
 """
 
 # Equation 31: The <|X(t) - X(s)|^{-1}> * exp(-|t-w|) effective action.
-A_integrand(x, v, w) = (abs(w^2 * x + (v^2 - w^2) / v * (1 - exp(-v * x))))^(-0.5) * exp(-x)
+# A_integrand(x, v, w) = (abs(w^2 * x + (v^2 - w^2) / v * (1 - exp(-v * x))))^(-0.5) * exp(-x)
 
-A(v, w, α) = π^(-0.5) * α * v * QuadGK.quadgk(x -> A_integrand(x, v, w), 0, Inf)[1]
+# A(v, w, α) = π^(-0.5) * α * v * QuadGK.quadgk(x -> A_integrand(x, v, w), 0, Inf)[1]
 
 # Equation 33: Lowest Free energy E = -B - A where B = -3/(4v)*(v-w)^2.
-free_energy(v, w, α; ω = 1.0) = ((3 / (4 * v)) * (v - w)^2 - A(v, w, α)) * ω
+# free_energy(v, w, α; ω = 1.0) = ((3 / (4 * v)) * (v - w)^2 - A(v, w, α)) * ω
 
 """
     Implementation of Osaka's extended treatment of Feynman's variational technique applied to the Polaron model; generalising it from the case at O^{∘}K to the case at finite temperature.
@@ -27,28 +27,28 @@ free_energy(v, w, α; ω = 1.0) = ((3 / (4 * v)) * (v - w)^2 - A(v, w, α)) * ω
 """
 
 # Equation 62d in Hellwarth.
-Y(x, v, β) = 1 / (1 - exp(-v * β)) * (1 + exp(-v * β) - exp(-v * x) - exp(v * (x - β)))
+# Y(x, v, β) = 1 / (1 - exp(-v * β)) * (1 + exp(-v * β) - exp(-v * x) - exp(v * (x - β)))
 
 # Integrand of Equation 62c in Hellwarth.
-A_integrand(x, v, w, β) =  (exp(β - x) + exp(x)) / sqrt(abs(w^2 * x * (1 - x / β) + Y(x, v, β) * (v^2 - w^2) / v))
+# A_integrand(x, v, w, β) =  (exp(β - x) + exp(x)) / sqrt(abs(w^2 * x * (1 - x / β) + Y(x, v, β) * (v^2 - w^2) / v))
 
 # Equation 62c in Hellwarth.
-A(v, w, α, β) = α * v / (sqrt(π) * (exp(BigFloat(β)) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, β), BigFloat(0.0), BigFloat(β / 2))[1]
+# A(v, w, α, β) = α * v / (sqrt(π) * (exp(BigFloat(β)) - 1)) * QuadGK.quadgk(x -> A_integrand(x, v, w, β), BigFloat(0.0), BigFloat(β / 2))[1]
 
 # Equation 62b in Hellwarth. Equation 20 in Osaka.
-B(v, w, β) = 3 / β * (log(v / w) - 1 / 2 * log(2 * π * BigFloat(β)) - log(sinh(v * BigFloat(β) / 2) / sinh(w * BigFloat(β) / 2)))
+# B(v, w, β) = 3 / β * (log(v / w) - 1 / 2 * log(2 * π * BigFloat(β)) - log(sinh(v * BigFloat(β) / 2) / sinh(w * BigFloat(β) / 2)))
 
 # Equation 62e in Hellwarth. Equation 17 in Osaka.
-C(v, w, β) = 3 / 4 * (v^2 - w^2) / v * (coth(v * BigFloat(β) / 2) - 2 / (v * β))
+# C(v, w, β) = 3 / 4 * (v^2 - w^2) / v * (coth(v * BigFloat(β) / 2) - 2 / (v * β))
 
 # Equation 62a in Hellwarth. In paragraph below Equation 22 in Osaka; has extra 1/β due to different definition of A, B & C.
-function free_energy(v, w, α, β; ω = 1.0)
-    setprecision(BigFloat, 64)
-    a = A(v, w, α, β[1])
-    b = B(v, w, β[1])
-    c = C(v, w, β[1])
-    -(a + b + c) * ω
-end
+# function free_energy(v, w, α, β; ω = 1.0)
+#     setprecision(BigFloat, 64)
+#     a = A(v, w, α, β[1])
+#     b = B(v, w, β[1])
+#     c = C(v, w, β[1])
+#     -(a + b + c) * ω
+# end
 
 """
 ----------------------------------------------------------------------
@@ -275,7 +275,7 @@ free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 
      - volume is the volume of the unit cell of the material in m^3.
      - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
 """
-@noinline function free_energy(v, w, α::Array, β::Array; ω = 1.0)
+@noinline function free_energy(v, w, α, β; ω = 1.0)
 
     # Total number of phonon modes / branches.
     num_of_modes = length(ω)
@@ -312,7 +312,7 @@ free_energy(v_params::Array{Float64}(undef, 1), w_params::Array{Float64}(undef, 
      - volume is the volume of the unit cell of the material in m^3.
      - freqs_and_ir_activity is a matrix containing the phonon mode frequencies (in THz) in the first column and the infra-red activities (in e^2 amu^-1) in the second column.
 """
-@noinline function free_energy(v, w, α::Array; ω = 1.0)
+@noinline function free_energy(v, w, α; ω = 1.0)
 
     # Speed up. Stops potential overflows.
     setprecision(BigFloat, 32) 
